@@ -27,19 +27,14 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
           
       - name: Install dependencies
-        run: |
-          cd local-lens-app
-          npm ci
+        run: npm ci
           
       - name: Build
         env:
           GITHUB_PAGES: true
-        run: |
-          cd local-lens-app
-          npm run build
+        run: npm run build
           
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -47,7 +42,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: local-lens-app/dist
+          path: dist
 
   deploy:
     environment:
