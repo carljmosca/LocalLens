@@ -2,6 +2,8 @@
 
 A browser-based Points of Interest (POI) search application powered by a local language model. Search for locations using natural language queries with advanced proximity search and attribute filtering.
 
+This project is the result of wondering what one might do with a locally-running language model not via [Ollama](https://ollama.com/), [LMStudio](https://lmstudio.ai/), or [Ramalama](https://ramalama.ai/) (all of which are very cool in my opinion) but in the browser.  I saw one of IBM's Granite models running in the browser and it made me wonder about use cases.  This little example project is the result.
+
 ## Features
 
 - 🤖 **LM-Powered Search**: Uses FLAN-T5-small language model running entirely in your browser
