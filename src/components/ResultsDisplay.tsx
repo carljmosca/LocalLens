@@ -1,6 +1,7 @@
 import React from 'react';
 import type { QueryResult } from '../types';
 import POICard from './POICard';
+import GroupedPOICard from './GroupedPOICard';
 import { appConfig } from '../config/app.config';
 
 /**
@@ -48,6 +49,37 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, onTypeClick }) 
         <div className="poi-list" role="list" aria-label={`${result.pois.length} points of interest found`}>
           {result.pois.map((poi) => (
             <POICard key={poi.id} poi={poi} />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  // Grouped - display POIs with their nearby relationships
+  if (result.type === 'grouped') {
+    const targetDisplay = result.targetType.replace('_', ' ');
+    const nearbyDisplay = result.nearbyType.replace('_', ' ');
+    const totalNearby = result.poisWithNearby.reduce((sum, poi) => sum + poi.nearbyPOIs.length, 0);
+
+    return (
+      <section className="results-display grouped-result" role="region" aria-label="Grouped search results">
+        <div className="results-header">
+          <h2 className="results-title">
+            <span className="success-icon" aria-hidden="true">✓</span>
+            {result.poisWithNearby.length} {targetDisplay}{result.poisWithNearby.length !== 1 ? 's' : ''} with nearby {nearbyDisplay}s
+          </h2>
+          <p className="results-subtitle">
+            Found {totalNearby} {nearbyDisplay}{totalNearby !== 1 ? 's' : ''} within {result.maxDistance} mile{result.maxDistance !== 1 ? 's' : ''}
+          </p>
+        </div>
+        <div className="grouped-poi-list" role="list" aria-label={`${result.poisWithNearby.length} grouped points of interest`}>
+          {result.poisWithNearby.map((poiWithNearby) => (
+            <GroupedPOICard 
+              key={poiWithNearby.id} 
+              poiWithNearby={poiWithNearby}
+              targetType={result.targetType}
+              nearbyType={result.nearbyType}
+            />
           ))}
         </div>
       </section>

@@ -135,6 +135,85 @@ class LLMServiceImpl implements LLMService {
         };
       }
 
+      // Check for proximity queries (e.g., "parks with nearby restaurants", "museums near cafes")
+      const proximityPatterns = [
+        /(.+?)\s+(?:with|having|that have)\s+nearby\s+(.+)/i,
+        /(.+?)\s+near\s+(.+)/i,
+        /(.+?)\s+close to\s+(.+)/i,
+        /(.+?)\s+around\s+(.+)/i
+      ];
+
+      let isProximityQuery = false;
+      let targetType: string | undefined;
+      let nearbyType: string | undefined;
+      let targetAttributes: string[] = [];
+      let nearbyAttributes: string[] = [];
+
+      for (const pattern of proximityPatterns) {
+        const match = query.match(pattern);
+        if (match) {
+          isProximityQuery = true;
+          
+          // Extract nouns and adjectives for both parts
+          const targetPart = await this.extractNounsAndAdjectives(match[1]);
+          const nearbyPart = await this.extractNounsAndAdjectives(match[2]);
+          
+          // Match nouns to POI types
+          const targetTypes = this.matchNounsToTypes(targetPart.nouns, this.supportedTypes);
+          const nearbyTypes = this.matchNounsToTypes(nearbyPart.nouns, this.supportedTypes);
+          
+          if (targetTypes.length > 0) targetType = targetTypes[0];
+          if (nearbyTypes.length > 0) nearbyType = nearbyTypes[0];
+          
+          // Filter adjectives that are not POI types (these become attributes)
+          targetAttributes = targetPart.adjectives.filter(adj => {
+            const adjLower = adj.toLowerCase();
+            return !this.supportedTypes.some(type => {
+              const typeNormalized = type.replace('_', ' ').toLowerCase();
+              const typeSingular = typeNormalized.replace(/s$/, '');
+              const adjSingular = adjLower.replace(/s$/, '');
+              return adjLower === typeNormalized || 
+                     adjLower === type.toLowerCase() ||
+                     adjSingular === typeSingular;
+            });
+          });
+          
+          nearbyAttributes = nearbyPart.adjectives.filter(adj => {
+            const adjLower = adj.toLowerCase();
+            return !this.supportedTypes.some(type => {
+              const typeNormalized = type.replace('_', ' ').toLowerCase();
+              const typeSingular = typeNormalized.replace(/s$/, '');
+              const adjSingular = adjLower.replace(/s$/, '');
+              return adjLower === typeNormalized || 
+                     adjLower === type.toLowerCase() ||
+                     adjSingular === typeSingular;
+            });
+          });
+          
+          console.log('Proximity query detected:', {
+            target: targetType,
+            nearby: nearbyType,
+            targetAttributes,
+            nearbyAttributes,
+            original: query
+          });
+          break;
+        }
+      }
+
+      if (isProximityQuery && targetType && nearbyType) {
+        return {
+          isValid: true,
+          types: [targetType, nearbyType],
+          isTypeRequest: false,
+          isProximityQuery: true,
+          targetType,
+          nearbyType,
+          attributes: targetAttributes.length > 0 ? { cuisine: targetAttributes } : undefined,
+          nearbyAttributes: nearbyAttributes.length > 0 ? { cuisine: nearbyAttributes } : undefined
+        };
+      }
+
       // Extract nouns and adjectives from the query using LLM
       const { nouns, adjectives } = await this.extractNounsAndAdjectives(query);
       console.log('Nouns extracted from query:', nouns);

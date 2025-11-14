@@ -278,10 +278,10 @@
       "type": "restaurant",
       "attributes": ["vietnamese", "asian", "pho", "noodles"],
       "location": {
-        "latitude": 37.5423,
-        "longitude": -77.4756
+        "latitude": 37.5733,
+        "longitude": -77.5089
       },
-      "address": "4300 W Broad St, Richmond, VA 23230"
+      "address": "6328 Rigsby Rd, Richmond, VA 23226"
     },
     {
       "id": "restaurant_013",

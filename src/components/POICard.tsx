@@ -30,7 +30,16 @@ const POICard: React.FC<POICardProps> = React.memo(({ poi }) => {
         )}
         {poi.address && (
           <p className="poi-address">
-            <strong>Address:</strong> {poi.address}
+            <strong>Address:</strong>{' '}
+            <a 
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(poi.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="address-link"
+              aria-label={`Open ${poi.address} in Google Maps`}
+            >
+              {poi.address}
+            </a>
           </p>
         )}
       </div>

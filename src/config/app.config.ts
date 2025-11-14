@@ -17,6 +17,12 @@ export const appConfig = {
     description: 'Search for Points of Interest using natural language queries'
   },
   
+  // Search configuration
+  search: {
+    // Distance in miles for "nearby" searches
+    nearbyDistanceMiles: 1.5
+  },
+  
   // Data source
   data: {
     poisJsonPath: '/src/data/pois.json'

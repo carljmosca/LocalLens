@@ -3,6 +3,7 @@ import { llmService } from './llmService';
 import { dataService } from './dataService';
 import { AppError, ErrorCode, logError } from '../utils/errors';
 import { appConfig } from '../config/app.config';
+import { findPOIsWithNearby, filterPOIsByAttributes } from '../utils/distance';
 
 /**
  * Query Service implementation
@@ -68,7 +69,70 @@ class QueryServiceImpl implements QueryService {
       console.log('Ensuring POI data is loaded...');
       await dataService.loadPOIs();
       
-      // Query POIs from data service
+      // Handle proximity queries (e.g., "parks with nearby restaurants")
+      if (validationResult.isProximityQuery && validationResult.targetType && validationResult.nearbyType) {
+        console.log('Processing proximity query:', {
+          target: validationResult.targetType,
+          nearby: validationResult.nearbyType,
+          distance: `${appConfig.search.nearbyDistanceMiles} miles`,
+          targetAttributes: validationResult.attributes?.cuisine,
+          nearbyAttributes: validationResult.nearbyAttributes?.cuisine
+        });
+        
+        let targetPOIs = dataService.queryPOIs([validationResult.targetType]);
+        let nearbyPOIs = dataService.queryPOIs([validationResult.nearbyType]);
+        
+        console.log(`Found ${targetPOIs.length} ${validationResult.targetType}s and ${nearbyPOIs.length} ${validationResult.nearbyType}s before attribute filtering`);
+        
+        // Apply attribute filtering to target POIs if specified
+        if (validationResult.attributes?.cuisine && validationResult.attributes.cuisine.length > 0) {
+          console.log('Filtering target POIs by attributes:', validationResult.attributes.cuisine);
+          targetPOIs = filterPOIsByAttributes(targetPOIs, validationResult.attributes.cuisine);
+          console.log(`${targetPOIs.length} ${validationResult.targetType}s remain after attribute filtering`);
+        }
+        
+        // Apply attribute filtering to nearby POIs if specified
+        if (validationResult.nearbyAttributes?.cuisine && validationResult.nearbyAttributes.cuisine.length > 0) {
+          console.log('Filtering nearby POIs by attributes:', validationResult.nearbyAttributes.cuisine);
+          nearbyPOIs = filterPOIsByAttributes(nearbyPOIs, validationResult.nearbyAttributes.cuisine);
+          console.log(`${nearbyPOIs.length} ${validationResult.nearbyType}s remain after attribute filtering`);
+        }
+        
+        const poisWithNearby = findPOIsWithNearby(targetPOIs, nearbyPOIs);
+        console.log(`Found ${poisWithNearby.length} ${validationResult.targetType}s with nearby ${validationResult.nearbyType}s`);
+        
+        if (poisWithNearby.length === 0) {
+          const targetDisplay = validationResult.targetType.replace('_', ' ');
+          const nearbyDisplay = validationResult.nearbyType.replace('_', ' ');
+          const nearbyAttrText = validationResult.nearbyAttributes?.cuisine?.length 
+            ? ` ${validationResult.nearbyAttributes.cuisine.join(', ')}` 
+            : '';
+          const targetAttrText = validationResult.attributes?.cuisine?.length 
+            ? ` ${validationResult.attributes.cuisine.join(', ')}` 
+            : '';
+          
+          return {
+            type: 'suggestions',
+            message: `No${targetAttrText} ${targetDisplay}s found with${nearbyAttrText} ${nearbyDisplay}s within ${appConfig.search.nearbyDistanceMiles} mile${appConfig.search.nearbyDistanceMiles === 1 ? '' : 's'} in ${appConfig.location.displayName}.`,
+            suggestions: [
+              `Try: "Find ${targetDisplay}s in ${appConfig.location.city}"`,
+              `Try: "Show me ${nearbyDisplay}s"`,
+              'Try increasing the search distance or searching for different POI types or attributes'
+            ]
+          };
+        }
+        
+        console.log('=== Proximity Query Processing Complete ===');
+        return {
+          type: 'grouped',
+          poisWithNearby,
+          targetType: validationResult.targetType,
+          nearbyType: validationResult.nearbyType,
+          maxDistance: appConfig.search.nearbyDistanceMiles
+        };
+      }
+      
+      // Regular query processing
       console.log('Querying POIs with types:', validationResult.types);
       let pois = dataService.queryPOIs(validationResult.types);
       console.log('POIs found before filtering:', pois.length);
@@ -195,6 +259,9 @@ class QueryServiceImpl implements QueryService {
       `Try: "Find ${exampleTypes[0] || 'museums'} in ${appConfig.location.city}"`,
       `Try: "Show me ${exampleTypes[1] || 'restaurants'}"`,
       `Try: "Where are the ${exampleTypes[2] || 'parks'}?"`,
+      `Try: "Parks with nearby restaurants" (within ${appConfig.search.nearbyDistanceMiles} mile${appConfig.search.nearbyDistanceMiles === 1 ? '' : 's'})`,
+      `Try: "Parks with nearby asian restaurants" (specify cuisine/attributes for secondary POIs)`,
+      `Try: "Museums near coffee shops" (finds primary POIs with nearby secondary POIs)`,
       'Or ask: "What types are supported?"'
     ];
   }
