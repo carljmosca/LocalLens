@@ -1,6 +1,7 @@
 import React from 'react';
 import type { QueryResult } from '../types';
 import POICard from './POICard';
+import { appConfig } from '../config/app.config';
 
 /**
  * Props for ResultsDisplay component
@@ -18,7 +19,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
   if (!result) {
     return (
       <section className="results-display" role="region" aria-label="Search results">
-        <p className="info-message" role="status">Enter a query to search for Points of Interest in Richmond, VA.</p>
+        <p className="info-message" role="status">
+          Enter a query to search for Points of Interest in {appConfig.location.displayName}.
+        </p>
       </section>
     );
   }

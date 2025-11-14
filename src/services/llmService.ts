@@ -144,11 +144,28 @@ class LLMServiceImpl implements LLMService {
       const types = this.matchNounsToTypes(nouns, this.supportedTypes);
       console.log('Matched POI types:', types);
 
+      // Filter out adjectives that are actually POI types or their plurals
+      const actualAdjectives = adjectives.filter(adj => {
+        const adjLower = adj.toLowerCase();
+        // Check if this adjective is actually a POI type
+        const isPoiType = this.supportedTypes.some(type => {
+          const typeNormalized = type.replace('_', ' ').toLowerCase();
+          const typeSingular = typeNormalized.replace(/s$/, '');
+          const adjSingular = adjLower.replace(/s$/, '');
+          return adjLower === typeNormalized || 
+                 adjLower === type.toLowerCase() ||
+                 adjSingular === typeSingular;
+        });
+        return !isPoiType;
+      });
+      
+      console.log('Actual adjectives (after filtering POI types):', actualAdjectives);
+
       return {
         isValid: types.length > 0,
         types,
         isTypeRequest: false,
-        attributes: adjectives.length > 0 ? { cuisine: adjectives } : undefined
+        attributes: actualAdjectives.length > 0 ? { cuisine: actualAdjectives } : undefined
       };
     } catch (error) {
       // Log error but return invalid result for graceful handling

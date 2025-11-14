@@ -2,6 +2,7 @@ import { QueryService, QueryResult } from '../types/services';
 import { llmService } from './llmService';
 import { dataService } from './dataService';
 import { AppError, ErrorCode, logError } from '../utils/errors';
+import { appConfig } from '../config/app.config';
 
 /**
  * Query Service implementation
@@ -69,44 +70,54 @@ class QueryServiceImpl implements QueryService {
       console.log('POIs found before filtering:', pois.length);
       
       // Filter by attributes if specified (e.g., cuisine, style, etc.)
+      // Only filter if we have attributes AND at least one POI has attributes
       if (validationResult.attributes?.cuisine && validationResult.attributes.cuisine.length > 0) {
         const requestedAttributes = validationResult.attributes.cuisine;
-        console.log('Filtering by attributes:', requestedAttributes);
-        console.log('Requested attributes (lowercase):', requestedAttributes.map(a => a.toLowerCase()));
         
-        pois = pois.filter(poi => {
-          if (!poi.attributes || poi.attributes.length === 0) {
-            console.log(`POI "${poi.name}" has no attributes, excluding`);
-            return false;
-          }
+        // Check if any POIs actually have attributes
+        const poisWithAttributes = pois.filter(poi => poi.attributes && poi.attributes.length > 0);
+        
+        // Only apply attribute filtering if some POIs have attributes
+        if (poisWithAttributes.length > 0) {
+          console.log('Filtering by attributes:', requestedAttributes);
+          console.log('Requested attributes (lowercase):', requestedAttributes.map(a => a.toLowerCase()));
           
-          // Check if any requested attribute matches any POI attribute
-          const matches = requestedAttributes.some(reqAttr => 
-            poi.attributes!.some(poiAttr => {
-              const reqLower = reqAttr.toLowerCase();
-              const poiLower = poiAttr.toLowerCase();
-              const match = poiLower.includes(reqLower) || reqLower.includes(poiLower);
-              if (match) {
-                console.log(`Match found: "${reqAttr}" matches "${poiAttr}" in "${poi.name}"`);
-              }
-              return match;
-            })
-          );
-          
-          if (!matches) {
-            console.log(`POI "${poi.name}" attributes ${JSON.stringify(poi.attributes)} don't match ${JSON.stringify(requestedAttributes)}`);
-          }
-          
-          return matches;
-        });
-        console.log('POIs found after attribute filter:', pois.length);
+          pois = pois.filter(poi => {
+            if (!poi.attributes || poi.attributes.length === 0) {
+              console.log(`POI "${poi.name}" has no attributes, excluding`);
+              return false;
+            }
+            
+            // Check if any requested attribute matches any POI attribute
+            const matches = requestedAttributes.some(reqAttr => 
+              poi.attributes!.some(poiAttr => {
+                const reqLower = reqAttr.toLowerCase();
+                const poiLower = poiAttr.toLowerCase();
+                const match = poiLower.includes(reqLower) || reqLower.includes(poiLower);
+                if (match) {
+                  console.log(`Match found: "${reqAttr}" matches "${poiAttr}" in "${poi.name}"`);
+                }
+                return match;
+              })
+            );
+            
+            if (!matches) {
+              console.log(`POI "${poi.name}" attributes ${JSON.stringify(poi.attributes)} don't match ${JSON.stringify(requestedAttributes)}`);
+            }
+            
+            return matches;
+          });
+          console.log('POIs found after attribute filter:', pois.length);
+        } else {
+          console.log('No POIs have attributes, skipping attribute filter');
+        }
       }
 
       // Handle no results found
       if (pois.length === 0) {
         return {
           type: 'suggestions',
-          message: `No ${validationResult.types.join(' or ')} found in Richmond, VA.`,
+          message: `No ${validationResult.types.join(' or ')} found in ${appConfig.location.displayName}.`,
           suggestions: this.getDefaultSuggestions()
         };
       }
@@ -173,12 +184,13 @@ class QueryServiceImpl implements QueryService {
    * Get default query suggestions for users
    */
   private getDefaultSuggestions(): string[] {
+    const types = dataService.getSupportedTypes();
+    const exampleTypes = types.slice(0, 3).map(t => t.replace('_', ' '));
+    
     return [
-      'Try: "Find museums in Richmond"',
-      'Try: "Show me restaurants"',
-      'Try: "Where are the parks?"',
-      'Try: "Find coffee shops near me"',
-      'Try: "List hospitals"',
+      `Try: "Find ${exampleTypes[0] || 'museums'} in ${appConfig.location.city}"`,
+      `Try: "Show me ${exampleTypes[1] || 'restaurants'}"`,
+      `Try: "Where are the ${exampleTypes[2] || 'parks'}?"`,
       'Or ask: "What types are supported?"'
     ];
   }
