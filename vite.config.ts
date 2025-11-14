@@ -5,8 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   // Set base path for GitHub Pages deployment
-  // Change 'local-lens-app' to your repository name
-  base: process.env.GITHUB_PAGES ? '/local-lens-app/' : '/',
+  base: process.env.GITHUB_PAGES ? '/LocalLens/' : '/',
   optimizeDeps: {
     exclude: ['@huggingface/transformers']
   },
