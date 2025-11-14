@@ -40,7 +40,7 @@ class DataServiceImpl implements DataService {
    */
   private async _loadPOIsInternal(): Promise<void> {
     try {
-      const response = await fetch('/src/data/pois.json');
+      const response = await fetch('/pois.json');
       
       if (!response.ok) {
         throw new AppError(

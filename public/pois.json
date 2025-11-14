@@ -1,0 +1,370 @@
+{
+  "supportedTypes": ["museum", "hospital", "park", "restaurant", "coffee_shop"],
+  "pois": [
+    {
+      "id": "museum_001",
+      "name": "Virginia Museum of Fine Arts",
+      "type": "museum",
+      "location": {
+        "latitude": 37.5553,
+        "longitude": -77.4747
+      },
+      "address": "200 N Arthur Ashe Blvd, Richmond, VA 23220"
+    },
+    {
+      "id": "museum_002",
+      "name": "Science Museum of Virginia",
+      "type": "museum",
+      "location": {
+        "latitude": 37.5584,
+        "longitude": -77.4641
+      },
+      "address": "2500 W Broad St, Richmond, VA 23220"
+    },
+    {
+      "id": "museum_003",
+      "name": "Virginia Museum of History & Culture",
+      "type": "museum",
+      "location": {
+        "latitude": 37.5562,
+        "longitude": -77.4732
+      },
+      "address": "428 N Arthur Ashe Blvd, Richmond, VA 23220"
+    },
+    {
+      "id": "museum_004",
+      "name": "Edgar Allan Poe Museum",
+      "type": "museum",
+      "location": {
+        "latitude": 37.5312,
+        "longitude": -77.4283
+      },
+      "address": "1914 E Main St, Richmond, VA 23223"
+    },
+    {
+      "id": "museum_005",
+      "name": "American Civil War Museum",
+      "type": "museum",
+      "location": {
+        "latitude": 37.5385,
+        "longitude": -77.4342
+      },
+      "address": "480 Tredegar St, Richmond, VA 23219"
+    },
+    {
+      "id": "hospital_001",
+      "name": "VCU Medical Center",
+      "type": "hospital",
+      "location": {
+        "latitude": 37.5396,
+        "longitude": -77.4311
+      },
+      "address": "1250 E Marshall St, Richmond, VA 23298"
+    },
+    {
+      "id": "hospital_002",
+      "name": "Chippenham Hospital",
+      "type": "hospital",
+      "location": {
+        "latitude": 37.5127,
+        "longitude": -77.5563
+      },
+      "address": "7101 Jahnke Rd, Richmond, VA 23225"
+    },
+    {
+      "id": "hospital_003",
+      "name": "Henrico Doctors' Hospital",
+      "type": "hospital",
+      "location": {
+        "latitude": 37.5897,
+        "longitude": -77.4019
+      },
+      "address": "1602 Skipwith Rd, Richmond, VA 23229"
+    },
+    {
+      "id": "hospital_004",
+      "name": "Johnston-Willis Hospital",
+      "type": "hospital",
+      "location": {
+        "latitude": 37.4842,
+        "longitude": -77.5563
+      },
+      "address": "1401 Johnston-Willis Dr, Richmond, VA 23235"
+    },
+    {
+      "id": "hospital_005",
+      "name": "Retreat Doctors' Hospital",
+      "type": "hospital",
+      "location": {
+        "latitude": 37.5234,
+        "longitude": -77.5234
+      },
+      "address": "2621 Grove Ave, Richmond, VA 23220"
+    },
+    {
+      "id": "park_001",
+      "name": "Maymont Park",
+      "type": "park",
+      "location": {
+        "latitude": 37.5344,
+        "longitude": -77.4722
+      },
+      "address": "1700 Hampton St, Richmond, VA 23220"
+    },
+    {
+      "id": "park_002",
+      "name": "Bryan Park",
+      "type": "park",
+      "location": {
+        "latitude": 37.5897,
+        "longitude": -77.4519
+      },
+      "address": "4308 Hermitage Rd, Richmond, VA 23227"
+    },
+    {
+      "id": "park_003",
+      "name": "Belle Isle",
+      "type": "park",
+      "location": {
+        "latitude": 37.5312,
+        "longitude": -77.4567
+      },
+      "address": "Tredegar St, Richmond, VA 23219"
+    },
+    {
+      "id": "park_004",
+      "name": "Forest Hill Park",
+      "type": "park",
+      "location": {
+        "latitude": 37.5234,
+        "longitude": -77.4897
+      },
+      "address": "4021 Forest Hill Ave, Richmond, VA 23225"
+    },
+    {
+      "id": "park_005",
+      "name": "Byrd Park",
+      "type": "park",
+      "location": {
+        "latitude": 37.5456,
+        "longitude": -77.4789
+      },
+      "address": "600 S Boulevard, Richmond, VA 23220"
+    },
+    {
+      "id": "restaurant_001",
+      "name": "The Roosevelt",
+      "type": "restaurant",
+      "attributes": ["southern", "american"],
+      "location": {
+        "latitude": 37.5523,
+        "longitude": -77.4634
+      },
+      "address": "623 N 25th St, Richmond, VA 23223"
+    },
+    {
+      "id": "restaurant_002",
+      "name": "L'Opossum",
+      "type": "restaurant",
+      "attributes": ["french", "fine dining"],
+      "location": {
+        "latitude": 37.5534,
+        "longitude": -77.4712
+      },
+      "address": "626 China St, Richmond, VA 23220"
+    },
+    {
+      "id": "restaurant_003",
+      "name": "Lemaire",
+      "type": "restaurant",
+      "attributes": ["american", "fine dining"],
+      "location": {
+        "latitude": 37.5412,
+        "longitude": -77.4356
+      },
+      "address": "101 W Franklin St, Richmond, VA 23220"
+    },
+    {
+      "id": "restaurant_004",
+      "name": "Stella's",
+      "type": "restaurant",
+      "attributes": ["greek", "mediterranean"],
+      "location": {
+        "latitude": 37.5523,
+        "longitude": -77.4689
+      },
+      "address": "1012 Lafayette St, Richmond, VA 23221"
+    },
+    {
+      "id": "restaurant_005",
+      "name": "Rappahannock",
+      "type": "restaurant",
+      "attributes": ["seafood", "oysters"],
+      "location": {
+        "latitude": 37.5523,
+        "longitude": -77.4623
+      },
+      "address": "320 E Grace St, Richmond, VA 23219"
+    },
+    {
+      "id": "restaurant_006",
+      "name": "Edo's Squid",
+      "type": "restaurant",
+      "attributes": ["italian", "pasta", "pizza"],
+      "location": {
+        "latitude": 37.5545,
+        "longitude": -77.4701
+      },
+      "address": "411 N Harrison St, Richmond, VA 23220"
+    },
+    {
+      "id": "restaurant_007",
+      "name": "Mama J's Kitchen",
+      "type": "restaurant",
+      "attributes": ["soul food", "southern", "comfort food"],
+      "location": {
+        "latitude": 37.5534,
+        "longitude": -77.4623
+      },
+      "address": "415 N 1st St, Richmond, VA 23219"
+    },
+    {
+      "id": "restaurant_008",
+      "name": "Kuba Kuba",
+      "type": "restaurant",
+      "attributes": ["cuban", "latin", "caribbean"],
+      "location": {
+        "latitude": 37.5556,
+        "longitude": -77.4689
+      },
+      "address": "1601 Park Ave, Richmond, VA 23220"
+    },
+    {
+      "id": "restaurant_009",
+      "name": "Foo Dog",
+      "type": "restaurant",
+      "attributes": ["asian fusion", "asian", "modern"],
+      "location": {
+        "latitude": 37.5512,
+        "longitude": -77.4678
+      },
+      "address": "2913 W Cary St, Richmond, VA 23221"
+    },
+    {
+      "id": "restaurant_010",
+      "name": "Lehja",
+      "type": "restaurant",
+      "attributes": ["indian", "curry", "vegetarian"],
+      "location": {
+        "latitude": 37.5489,
+        "longitude": -77.4712
+      },
+      "address": "2737 W Broad St, Richmond, VA 23220"
+    },
+    {
+      "id": "restaurant_011",
+      "name": "Arirang Korean Restaurant",
+      "type": "restaurant",
+      "attributes": ["korean", "asian", "bbq"],
+      "location": {
+        "latitude": 37.5467,
+        "longitude": -77.4734
+      },
+      "address": "5559 W Broad St, Richmond, VA 23230"
+    },
+    {
+      "id": "restaurant_012",
+      "name": "Pho Tay Do",
+      "type": "restaurant",
+      "attributes": ["vietnamese", "asian", "pho", "noodles"],
+      "location": {
+        "latitude": 37.5423,
+        "longitude": -77.4756
+      },
+      "address": "4300 W Broad St, Richmond, VA 23230"
+    },
+    {
+      "id": "restaurant_013",
+      "name": "Casa Del Barco",
+      "type": "restaurant",
+      "attributes": ["mexican", "latin", "tacos"],
+      "location": {
+        "latitude": 37.5501,
+        "longitude": -77.4667
+      },
+      "address": "2800 W Broad St, Richmond, VA 23220"
+    },
+    {
+      "id": "restaurant_014",
+      "name": "Bamboo Cafe",
+      "type": "restaurant",
+      "attributes": ["chinese", "asian", "dim sum"],
+      "location": {
+        "latitude": 37.5478,
+        "longitude": -77.4723
+      },
+      "address": "3524 W Cary St, Richmond, VA 23221"
+    },
+    {
+      "id": "restaurant_015",
+      "name": "Akida Japanese Restaurant",
+      "type": "restaurant",
+      "attributes": ["japanese", "asian", "sushi"],
+      "location": {
+        "latitude": 37.5534,
+        "longitude": -77.4645
+      },
+      "address": "2913 W Cary St, Richmond, VA 23221"
+    },
+    {
+      "id": "coffee_001",
+      "name": "Lamplighter Coffee Roasters",
+      "type": "coffee_shop",
+      "location": {
+        "latitude": 37.5534,
+        "longitude": -77.4689
+      },
+      "address": "116 S Addison St, Richmond, VA 23220"
+    },
+    {
+      "id": "coffee_002",
+      "name": "Rostov's Coffee & Tea",
+      "type": "coffee_shop",
+      "location": {
+        "latitude": 37.5556,
+        "longitude": -77.4712
+      },
+      "address": "609 N Lombardy St, Richmond, VA 23220"
+    },
+    {
+      "id": "coffee_003",
+      "name": "Blanchard's Coffee Roasting Co.",
+      "type": "coffee_shop",
+      "location": {
+        "latitude": 37.5523,
+        "longitude": -77.4634
+      },
+      "address": "5705 Grove Ave, Richmond, VA 23226"
+    },
+    {
+      "id": "coffee_004",
+      "name": "Ironclad Coffee Roasters",
+      "type": "coffee_shop",
+      "location": {
+        "latitude": 37.5312,
+        "longitude": -77.4456
+      },
+      "address": "1805 E Grace St, Richmond, VA 23223"
+    },
+    {
+      "id": "coffee_005",
+      "name": "Chairlift Coffee",
+      "type": "coffee_shop",
+      "location": {
+        "latitude": 37.5489,
+        "longitude": -77.4678
+      },
+      "address": "3101 W Cary St, Richmond, VA 23221"
+    }
+  ]
+}
