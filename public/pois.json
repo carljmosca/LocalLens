@@ -190,8 +190,8 @@
       "type": "restaurant",
       "attributes": ["greek", "mediterranean"],
       "location": {
-        "latitude": 37.5523,
-        "longitude": -77.4689
+        "latitude": 37.5679,
+        "longitude": -77.4864
       },
       "address": "1012 Lafayette St, Richmond, VA 23221"
     },
