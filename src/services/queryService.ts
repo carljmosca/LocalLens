@@ -64,6 +64,10 @@ class QueryServiceImpl implements QueryService {
         };
       }
 
+      // Ensure POI data is loaded before querying
+      console.log('Ensuring POI data is loaded...');
+      await dataService.loadPOIs();
+      
       // Query POIs from data service
       console.log('Querying POIs with types:', validationResult.types);
       let pois = dataService.queryPOIs(validationResult.types);

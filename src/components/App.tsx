@@ -48,7 +48,7 @@ function App() {
   if (llmLoading) {
     return (
       <div className="app-container">
-        <LoadingIndicator message="Initializing AI model..." progress={loadingProgress} />
+        <LoadingIndicator message="Initializing AI model and loading data..." progress={loadingProgress} />
         <p className="loading-subtext">This may take a moment on first load...</p>
       </div>
     );

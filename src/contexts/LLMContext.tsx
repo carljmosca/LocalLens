@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { llmService } from '../services/llmService';
+import { dataService } from '../services/dataService';
 import type { LLMService } from '../types/llm';
 import { AppError, logError } from '../utils/errors';
 
@@ -55,16 +56,20 @@ export const LLMProvider: React.FC<LLMProviderProps> = ({ children }) => {
         // Simulate progress updates during initialization
         const progressInterval = setInterval(() => {
           setLoadingProgress(prev => {
-            if (prev >= 90) return prev;
+            if (prev >= 80) return prev;
             return prev + 10;
           });
         }, 300);
         
-        await llmService.initialize();
+        // Initialize both LLM and load POI data concurrently
+        await Promise.all([
+          llmService.initialize(),
+          dataService.loadPOIs()
+        ]);
         
         clearInterval(progressInterval);
         setLoadingProgress(100);
-        console.log('LLM initialization complete');
+        console.log('LLM and POI data initialization complete');
         
         // Small delay to show 100% before hiding
         await new Promise(resolve => setTimeout(resolve, 200));
