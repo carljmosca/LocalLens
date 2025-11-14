@@ -11,4 +11,5 @@ export interface POI {
   type: POIType;
   location: Location;
   address: string;
+  attributes?: string[];
 }

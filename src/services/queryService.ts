@@ -65,8 +65,42 @@ class QueryServiceImpl implements QueryService {
 
       // Query POIs from data service
       console.log('Querying POIs with types:', validationResult.types);
-      const pois = dataService.queryPOIs(validationResult.types);
-      console.log('POIs found:', pois.length);
+      let pois = dataService.queryPOIs(validationResult.types);
+      console.log('POIs found before filtering:', pois.length);
+      
+      // Filter by attributes if specified (e.g., cuisine, style, etc.)
+      if (validationResult.attributes?.cuisine && validationResult.attributes.cuisine.length > 0) {
+        const requestedAttributes = validationResult.attributes.cuisine;
+        console.log('Filtering by attributes:', requestedAttributes);
+        console.log('Requested attributes (lowercase):', requestedAttributes.map(a => a.toLowerCase()));
+        
+        pois = pois.filter(poi => {
+          if (!poi.attributes || poi.attributes.length === 0) {
+            console.log(`POI "${poi.name}" has no attributes, excluding`);
+            return false;
+          }
+          
+          // Check if any requested attribute matches any POI attribute
+          const matches = requestedAttributes.some(reqAttr => 
+            poi.attributes!.some(poiAttr => {
+              const reqLower = reqAttr.toLowerCase();
+              const poiLower = poiAttr.toLowerCase();
+              const match = poiLower.includes(reqLower) || reqLower.includes(poiLower);
+              if (match) {
+                console.log(`Match found: "${reqAttr}" matches "${poiAttr}" in "${poi.name}"`);
+              }
+              return match;
+            })
+          );
+          
+          if (!matches) {
+            console.log(`POI "${poi.name}" attributes ${JSON.stringify(poi.attributes)} don't match ${JSON.stringify(requestedAttributes)}`);
+          }
+          
+          return matches;
+        });
+        console.log('POIs found after attribute filter:', pois.length);
+      }
 
       // Handle no results found
       if (pois.length === 0) {

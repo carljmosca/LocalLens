@@ -21,6 +21,13 @@ const POICard: React.FC<POICardProps> = React.memo(({ poi }) => {
         <span className="poi-type-badge" role="status">{poi.type.replace('_', ' ')}</span>
       </div>
       <div className="poi-details">
+        {poi.attributes && poi.attributes.length > 0 && (
+          <div className="poi-attributes">
+            {poi.attributes.map((attr, index) => (
+              <span key={index} className="poi-attribute-tag">{attr}</span>
+            ))}
+          </div>
+        )}
         <p className="poi-coordinates">
           <strong>Coordinates:</strong> {poi.location.latitude.toFixed(4)}, {poi.location.longitude.toFixed(4)}
         </p>

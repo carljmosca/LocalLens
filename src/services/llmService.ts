@@ -135,9 +135,10 @@ class LLMServiceImpl implements LLMService {
         };
       }
 
-      // Extract nouns from the query using LLM
-      const nouns = await this.extractNouns(query);
+      // Extract nouns and adjectives from the query using LLM
+      const { nouns, adjectives } = await this.extractNounsAndAdjectives(query);
       console.log('Nouns extracted from query:', nouns);
+      console.log('Adjectives extracted from query:', adjectives);
       
       // Match nouns against supported types
       const types = this.matchNounsToTypes(nouns, this.supportedTypes);
@@ -146,7 +147,8 @@ class LLMServiceImpl implements LLMService {
       return {
         isValid: types.length > 0,
         types,
-        isTypeRequest: false
+        isTypeRequest: false,
+        attributes: adjectives.length > 0 ? { cuisine: adjectives } : undefined
       };
     } catch (error) {
       // Log error but return invalid result for graceful handling
@@ -169,46 +171,59 @@ class LLMServiceImpl implements LLMService {
    * Uses LLM to extract nouns, then matches against supported types
    */
   async extractPOITypes(query: string): Promise<string[]> {
-    const nouns = await this.extractNouns(query);
+    const { nouns } = await this.extractNounsAndAdjectives(query);
     return this.matchNounsToTypes(nouns, this.supportedTypes);
   }
 
   /**
-   * Extract nouns from query using the LLM
-   * Returns the key nouns that might represent POI types
+   * Extract nouns and adjectives from query using the LLM
+   * Returns both nouns (POI types) and adjectives (attributes like cuisine)
    */
-  async extractNouns(query: string): Promise<string[]> {
+  async extractNounsAndAdjectives(query: string): Promise<{ nouns: string[], adjectives: string[] }> {
     if (!this.ready || !this.model) {
-      console.log('LLM not ready, returning empty array');
-      return [];
+      console.log('LLM not ready, returning empty arrays');
+      return { nouns: [], adjectives: [] };
     }
 
     try {
-      // FLAN-T5 works best with direct instructions
-      const prompt = `Extract the main nouns from this query: ${query}`;
-
-      console.log('Extracting nouns with LLM...');
+      // Normalize query to lowercase to avoid capitalization issues with the model
+      const normalizedQuery = query.toLowerCase();
+      console.log('Extracting nouns and adjectives with LLM...');
       
-      const result = await this.model(prompt, {
+      // Extract nouns
+      const nounPrompt = `Extract only the nouns from this query: ${normalizedQuery}`;
+      const nounResult = await this.model(nounPrompt, {
         max_new_tokens: 15,
         temperature: 0.1,
         do_sample: false
       });
-
-      // FLAN-T5 returns the generated text directly
-      const generatedText = result[0]?.generated_text || '';
-      console.log('Extracted nouns:', generatedText);
+      const nounText = nounResult[0]?.generated_text || '';
+      console.log('Extracted nouns:', nounText);
       
-      // Split by comma or "and" and clean up
-      const nouns = generatedText
+      const nouns = nounText
         .split(/,|\sand\s/)
         .map((n: string) => n.trim().toLowerCase())
         .filter((n: string) => n.length > 0);
       
-      return nouns;
+      // Extract adjectives
+      const adjPrompt = `Extract only the adjectives from this query: ${normalizedQuery}`;
+      const adjResult = await this.model(adjPrompt, {
+        max_new_tokens: 15,
+        temperature: 0.1,
+        do_sample: false
+      });
+      const adjText = adjResult[0]?.generated_text || '';
+      console.log('Extracted adjectives:', adjText);
+      
+      const adjectives = adjText
+        .split(/,|\sand\s/)
+        .map((a: string) => a.trim().toLowerCase())
+        .filter((a: string) => a.length > 0);
+      
+      return { nouns, adjectives };
     } catch (error) {
-      console.error('Error extracting nouns:', error);
-      return [];
+      console.error('Error extracting nouns and adjectives:', error);
+      return { nouns: [], adjectives: [] };
     }
   }
 

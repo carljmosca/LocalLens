@@ -155,6 +155,7 @@
       "id": "restaurant_001",
       "name": "The Roosevelt",
       "type": "restaurant",
+      "attributes": ["southern", "american"],
       "location": {
         "latitude": 37.5523,
         "longitude": -77.4634
@@ -165,6 +166,7 @@
       "id": "restaurant_002",
       "name": "L'Opossum",
       "type": "restaurant",
+      "attributes": ["french", "fine dining"],
       "location": {
         "latitude": 37.5534,
         "longitude": -77.4712
@@ -175,6 +177,7 @@
       "id": "restaurant_003",
       "name": "Lemaire",
       "type": "restaurant",
+      "attributes": ["american", "fine dining"],
       "location": {
         "latitude": 37.5412,
         "longitude": -77.4356
@@ -185,6 +188,7 @@
       "id": "restaurant_004",
       "name": "Stella's",
       "type": "restaurant",
+      "attributes": ["greek", "mediterranean"],
       "location": {
         "latitude": 37.5523,
         "longitude": -77.4689
@@ -195,11 +199,122 @@
       "id": "restaurant_005",
       "name": "Rappahannock",
       "type": "restaurant",
+      "attributes": ["seafood", "oysters"],
       "location": {
         "latitude": 37.5523,
         "longitude": -77.4623
       },
       "address": "320 E Grace St, Richmond, VA 23219"
+    },
+    {
+      "id": "restaurant_006",
+      "name": "Edo's Squid",
+      "type": "restaurant",
+      "attributes": ["italian", "pasta", "pizza"],
+      "location": {
+        "latitude": 37.5545,
+        "longitude": -77.4701
+      },
+      "address": "411 N Harrison St, Richmond, VA 23220"
+    },
+    {
+      "id": "restaurant_007",
+      "name": "Mama J's Kitchen",
+      "type": "restaurant",
+      "attributes": ["soul food", "southern", "comfort food"],
+      "location": {
+        "latitude": 37.5534,
+        "longitude": -77.4623
+      },
+      "address": "415 N 1st St, Richmond, VA 23219"
+    },
+    {
+      "id": "restaurant_008",
+      "name": "Kuba Kuba",
+      "type": "restaurant",
+      "attributes": ["cuban", "latin", "caribbean"],
+      "location": {
+        "latitude": 37.5556,
+        "longitude": -77.4689
+      },
+      "address": "1601 Park Ave, Richmond, VA 23220"
+    },
+    {
+      "id": "restaurant_009",
+      "name": "Foo Dog",
+      "type": "restaurant",
+      "attributes": ["asian fusion", "asian", "modern"],
+      "location": {
+        "latitude": 37.5512,
+        "longitude": -77.4678
+      },
+      "address": "2913 W Cary St, Richmond, VA 23221"
+    },
+    {
+      "id": "restaurant_010",
+      "name": "Lehja",
+      "type": "restaurant",
+      "attributes": ["indian", "curry", "vegetarian"],
+      "location": {
+        "latitude": 37.5489,
+        "longitude": -77.4712
+      },
+      "address": "2737 W Broad St, Richmond, VA 23220"
+    },
+    {
+      "id": "restaurant_011",
+      "name": "Arirang Korean Restaurant",
+      "type": "restaurant",
+      "attributes": ["korean", "asian", "bbq"],
+      "location": {
+        "latitude": 37.5467,
+        "longitude": -77.4734
+      },
+      "address": "5559 W Broad St, Richmond, VA 23230"
+    },
+    {
+      "id": "restaurant_012",
+      "name": "Pho Tay Do",
+      "type": "restaurant",
+      "attributes": ["vietnamese", "asian", "pho", "noodles"],
+      "location": {
+        "latitude": 37.5423,
+        "longitude": -77.4756
+      },
+      "address": "4300 W Broad St, Richmond, VA 23230"
+    },
+    {
+      "id": "restaurant_013",
+      "name": "Casa Del Barco",
+      "type": "restaurant",
+      "attributes": ["mexican", "latin", "tacos"],
+      "location": {
+        "latitude": 37.5501,
+        "longitude": -77.4667
+      },
+      "address": "2800 W Broad St, Richmond, VA 23220"
+    },
+    {
+      "id": "restaurant_014",
+      "name": "Bamboo Cafe",
+      "type": "restaurant",
+      "attributes": ["chinese", "asian", "dim sum"],
+      "location": {
+        "latitude": 37.5478,
+        "longitude": -77.4723
+      },
+      "address": "3524 W Cary St, Richmond, VA 23221"
+    },
+    {
+      "id": "restaurant_015",
+      "name": "Akida Japanese Restaurant",
+      "type": "restaurant",
+      "attributes": ["japanese", "asian", "sushi"],
+      "location": {
+        "latitude": 37.5534,
+        "longitude": -77.4645
+      },
+      "address": "2913 W Cary St, Richmond, VA 23221"
     },
     {
       "id": "coffee_001",
