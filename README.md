@@ -2,7 +2,9 @@
 
 A browser-based Points of Interest (POI) search application powered by a local language model. Search for locations using natural language queries with advanced proximity search and attribute filtering.
 
-This project is the result of wondering what one might do with a locally-running language model not via [Ollama](https://ollama.com/), [LMStudio](https://lmstudio.ai/), or [Ramalama](https://ramalama.ai/) (all of which are very cool in my opinion) but in the browser.  I saw one of IBM's Granite models running in the browser and it made me wonder about use cases.  This little example project is the result.
+This project is the result of wondering what one might do with a locally-running language model not via [Ollama](https://ollama.com/), [LMStudio](https://lmstudio.ai/), or [Ramalama](https://ramalama.ai/) (all of which are very cool in my opinion) but in the browser.  I saw one of IBM's Granite models running in the browser and it made me wonder about use cases. I forked the IBM effort I am referencing [here](https://huggingface.co/spaces/carljmosca/Granite-4.0-WebGPU) to add file attachments.  My example use case then was to convert a PDF to JSON using a provided schema which worked with mixed success.
+
+This proof-of-concept project is the use case that came to mind next.  The idea is to leverage the language model to convert the natural language prompt to a query that returns data from a points of interest JSON file.
 
 ## Features
 
