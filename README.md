@@ -1,19 +1,22 @@
 # LocalLens
 
-A browser-based Points of Interest (POI) search application powered by AI. Search for locations using natural language queries with cuisine/attribute filtering.
+A browser-based Points of Interest (POI) search application powered by a local language model. Search for locations using natural language queries with advanced proximity search and attribute filtering.
 
 ## Features
 
-- 🤖 **AI-Powered Search**: Uses FLAN-T5 language model running entirely in your browser
+- 🤖 **LM-Powered Search**: Uses FLAN-T5-small language model running entirely in your browser
 - 🎯 **Natural Language Queries**: "Show me Italian restaurants" or "Find parks near me"
-- 🏷️ **Attribute Filtering**: Filter by cuisine, style, or any custom attributes
+- 🔍 **Proximity Search**: "Parks with nearby restaurants" or "Museums near coffee shops"
+- 🏷️ **Advanced Attribute Filtering**: Filter by cuisine, style, or any custom attributes for both primary and nearby POIs
+- 🗺️ **Google Maps Integration**: Click addresses to open in Google Maps
 - 🌐 **Fully Client-Side**: No backend required, runs 100% in the browser
 - ⚡ **WebGPU Accelerated**: Fast inference using WebGPU when available
 - 📱 **Responsive Design**: Works on desktop and mobile devices
+- 🐛 **Debug Logging**: Configurable debug output for development
 
 ## Live Demo
 
-Visit the live demo at: `https://[your-username].github.io/local-lens-app/`
+Visit the live demo at: `https://carljmosca.github.io/LocalLens/`
 
 ## Local Development
 
@@ -83,13 +86,41 @@ Edit `src/config/app.config.ts` to customize:
 - Location (city, state)
 - App name and description
 - Data source path
+- Search distance for proximity queries (default: 1.5 miles)
+
+### Debug Settings
+
+```typescript
+debug: {
+  // Enable console logging for query processing
+  enableLogging: false  // Set to true for detailed debug output
+}
+```
 
 ### POI Data
 
-Edit `src/data/pois.json` to add/modify POIs:
+Edit `public/pois.json` to add/modify POIs:
 - Add new POI types to `supportedTypes` array
 - Add POI entries with optional `attributes` for filtering
 - Attributes enable queries like "Italian restaurants" or "dog-friendly parks"
+- Ensure accurate coordinates for proximity search functionality
+
+## Query Examples
+
+### Basic Queries
+- "Show me restaurants"
+- "Find parks in Richmond" 
+- "Where are the museums?"
+
+### Attribute Filtering
+- "Italian restaurants"
+- "Asian restaurants" 
+- "Show me Vietnamese restaurants"
+
+### Proximity Search
+- "Parks with nearby restaurants" (finds parks that have restaurants within 1.5 miles)
+- "Museums near coffee shops" (finds museums with coffee shops nearby)
+- "Parks with nearby Italian restaurants" (combines proximity + attribute filtering)
 
 ## Browser Compatibility
 
@@ -101,6 +132,8 @@ Edit `src/data/pois.json` to add/modify POIs:
 
 - **Frontend**: React + TypeScript
 - **Build Tool**: Vite
-- **AI Model**: FLAN-T5-small (80MB)
-- **ML Framework**: Hugging Face Transformers.js
-- **Acceleration**: WebGPU / WebAssembly
+- **Language Model**: FLAN-T5-small (80MB) - runs locally in browser
+- **ML Framework**: Hugging Face Transformers.js with WebGPU support
+- **Acceleration**: WebGPU / WebAssembly fallback
+- **Distance Calculations**: Haversine formula for accurate proximity search
+- **Maps Integration**: Google Maps links for addresses
