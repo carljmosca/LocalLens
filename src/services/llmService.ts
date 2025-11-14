@@ -1,6 +1,7 @@
 import { pipeline } from '@huggingface/transformers';
 import type { LLMService, ValidationResult } from '../types/llm';
 import { AppError, ErrorCode, logError, checkWebGPUAvailability } from '../utils/errors';
+import { appConfig } from '../config/app.config';
 
 /**
  * LLM Service implementation using Hugging Face Transformers with WebGPU support
@@ -45,7 +46,9 @@ class LLMServiceImpl implements LLMService {
           throw webgpuCheck.error;
         }
 
-        console.log('Initializing LLM model with WebGPU...');
+        if (appConfig.debug.enableLogging) {
+          console.log('🤖 [DEBUG] Initializing LLM model with WebGPU...');
+        }
         
         // Set ONNX Runtime log level to suppress warnings
         // This reduces console noise from internal optimization decisions
@@ -65,7 +68,9 @@ class LLMServiceImpl implements LLMService {
         );
 
         this.ready = true;
-        console.log('LLM model initialized successfully');
+        if (appConfig.debug.enableLogging) {
+          console.log('✅ [DEBUG] LLM model initialized successfully');
+        }
       } catch (error) {
         this.ready = false;
         
@@ -190,13 +195,15 @@ class LLMServiceImpl implements LLMService {
             });
           });
           
-          console.log('Proximity query detected:', {
-            target: targetType,
-            nearby: nearbyType,
-            targetAttributes,
-            nearbyAttributes,
-            original: query
-          });
+          if (appConfig.debug.enableLogging) {
+            console.log('🎯 [DEBUG] Proximity query detected:', {
+              target: targetType,
+              nearby: nearbyType,
+              targetAttributes,
+              nearbyAttributes,
+              original: query
+            });
+          }
           break;
         }
       }
@@ -216,12 +223,16 @@ class LLMServiceImpl implements LLMService {
 
       // Extract nouns and adjectives from the query using LLM
       const { nouns, adjectives } = await this.extractNounsAndAdjectives(query);
-      console.log('Nouns extracted from query:', nouns);
-      console.log('Adjectives extracted from query:', adjectives);
+      if (appConfig.debug.enableLogging) {
+        console.log('🔍 [DEBUG] Nouns extracted from query:', nouns);
+        console.log('🔍 [DEBUG] Adjectives extracted from query:', adjectives);
+      }
       
       // Match nouns against supported types
       const types = this.matchNounsToTypes(nouns, this.supportedTypes);
-      console.log('Matched POI types:', types);
+      if (appConfig.debug.enableLogging) {
+        console.log('🎯 [DEBUG] Matched POI types:', types);
+      }
 
       // Filter out adjectives that are actually POI types or their plurals
       const actualAdjectives = adjectives.filter(adj => {
@@ -238,7 +249,9 @@ class LLMServiceImpl implements LLMService {
         return !isPoiType;
       });
       
-      console.log('Actual adjectives (after filtering POI types):', actualAdjectives);
+      if (appConfig.debug.enableLogging) {
+        console.log('🎨 [DEBUG] Actual adjectives (after filtering POI types):', actualAdjectives);
+      }
 
       return {
         isValid: types.length > 0,
@@ -277,14 +290,18 @@ class LLMServiceImpl implements LLMService {
    */
   async extractNounsAndAdjectives(query: string): Promise<{ nouns: string[], adjectives: string[] }> {
     if (!this.ready || !this.model) {
-      console.log('LLM not ready, returning empty arrays');
+      if (appConfig.debug.enableLogging) {
+        console.log('⚠️ [DEBUG] LLM not ready, returning empty arrays');
+      }
       return { nouns: [], adjectives: [] };
     }
 
     try {
       // Normalize query to lowercase to avoid capitalization issues with the model
       const normalizedQuery = query.toLowerCase();
-      console.log('Extracting nouns and adjectives with LLM...');
+      if (appConfig.debug.enableLogging) {
+        console.log('🤖 [DEBUG] Extracting nouns and adjectives with LLM...');
+      }
       
       // Extract nouns
       const nounPrompt = `Extract only the nouns from this query: ${normalizedQuery}`;
@@ -294,7 +311,9 @@ class LLMServiceImpl implements LLMService {
         do_sample: false
       });
       const nounText = nounResult[0]?.generated_text || '';
-      console.log('Extracted nouns:', nounText);
+      if (appConfig.debug.enableLogging) {
+        console.log('🔍 [DEBUG] Extracted nouns:', nounText);
+      }
       
       const nouns = nounText
         .split(/,|\sand\s/)
@@ -309,7 +328,9 @@ class LLMServiceImpl implements LLMService {
         do_sample: false
       });
       const adjText = adjResult[0]?.generated_text || '';
-      console.log('Extracted adjectives:', adjText);
+      if (appConfig.debug.enableLogging) {
+        console.log('🎨 [DEBUG] Extracted adjectives:', adjText);
+      }
       
       const adjectives = adjText
         .split(/,|\sand\s/)

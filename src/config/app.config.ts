@@ -26,5 +26,11 @@ export const appConfig = {
   // Data source
   data: {
     poisJsonPath: '/src/data/pois.json'
+  },
+  
+  // Debug configuration
+  debug: {
+    // Enable console logging for query processing
+    enableLogging: false
   }
 };
