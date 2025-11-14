@@ -1,13 +1,13 @@
 import { pipeline } from '@huggingface/transformers';
-import type { LLMService, ValidationResult } from '../types/llm';
+import type { LMService, ValidationResult } from '../types/lm';
 import { AppError, ErrorCode, logError, checkWebGPUAvailability } from '../utils/errors';
 import { appConfig } from '../config/app.config';
 
 /**
- * LLM Service implementation using Hugging Face Transformers with WebGPU support
+ * LM Service implementation using Hugging Face Transformers with WebGPU support
  * Handles query validation and POI type extraction using a local browser-based model
  */
-class LLMServiceImpl implements LLMService {
+class LMServiceImpl implements LMService {
   private model: any = null;
   private ready: boolean = false;
   private initializationPromise: Promise<void> | null = null;
@@ -34,7 +34,7 @@ class LLMServiceImpl implements LLMService {
         const webgpuCheck = checkWebGPUAvailability();
         
         // Log browser information
-        if (webgpuCheck.browserInfo) {
+        if (webgpuCheck.browserInfo && appConfig.debug.enableLogging) {
           console.log('Browser detected:', {
             name: webgpuCheck.browserInfo.name,
             version: webgpuCheck.browserInfo.version,
@@ -47,7 +47,9 @@ class LLMServiceImpl implements LLMService {
         }
 
         if (appConfig.debug.enableLogging) {
-          console.log('🤖 [DEBUG] Initializing LLM model with WebGPU...');
+        if (appConfig.debug.enableLogging) {
+          console.log('🤖 [DEBUG] Initializing LM model with WebGPU...');
+        }
         }
         
         // Set ONNX Runtime log level to suppress warnings
@@ -69,7 +71,9 @@ class LLMServiceImpl implements LLMService {
 
         this.ready = true;
         if (appConfig.debug.enableLogging) {
-          console.log('✅ [DEBUG] LLM model initialized successfully');
+        if (appConfig.debug.enableLogging) {
+          console.log('✅ [DEBUG] LM model initialized successfully');
+        }
         }
       } catch (error) {
         this.ready = false;
@@ -107,7 +111,7 @@ class LLMServiceImpl implements LLMService {
    * Uses LLM to extract nouns, then matches against supported types from data
    * Returns validation result with extracted types and flags
    */
-  async validateQuery(query: string): Promise<ValidationResult> {
+  async analyzeQuery(query: string): Promise<ValidationResult> {
     // Handle empty or whitespace-only queries
     if (!query || query.trim().length === 0) {
       return {
@@ -231,7 +235,11 @@ class LLMServiceImpl implements LLMService {
       // Match nouns against supported types
       const types = this.matchNounsToTypes(nouns, this.supportedTypes);
       if (appConfig.debug.enableLogging) {
+      if (appConfig.debug.enableLogging) {
+      if (appConfig.debug.enableLogging) {
         console.log('🎯 [DEBUG] Matched POI types:', types);
+      }
+      }
       }
 
       // Filter out adjectives that are actually POI types or their plurals
@@ -250,7 +258,11 @@ class LLMServiceImpl implements LLMService {
       });
       
       if (appConfig.debug.enableLogging) {
+      if (appConfig.debug.enableLogging) {
+      if (appConfig.debug.enableLogging) {
         console.log('🎨 [DEBUG] Actual adjectives (after filtering POI types):', actualAdjectives);
+      }
+      }
       }
 
       return {
@@ -263,7 +275,7 @@ class LLMServiceImpl implements LLMService {
       // Log error but return invalid result for graceful handling
       logError(
         error instanceof Error ? error : new Error(String(error)),
-        'LLMService.validateQuery'
+        'LMService.analyzeQuery'
       );
       
       // Return invalid result but don't throw - allow graceful handling
@@ -291,7 +303,11 @@ class LLMServiceImpl implements LLMService {
   async extractNounsAndAdjectives(query: string): Promise<{ nouns: string[], adjectives: string[] }> {
     if (!this.ready || !this.model) {
       if (appConfig.debug.enableLogging) {
-        console.log('⚠️ [DEBUG] LLM not ready, returning empty arrays');
+      if (appConfig.debug.enableLogging) {
+      if (appConfig.debug.enableLogging) {
+        console.log('⚠️ [DEBUG] LM not ready, returning empty arrays');
+      }
+      }
       }
       return { nouns: [], adjectives: [] };
     }
@@ -300,7 +316,7 @@ class LLMServiceImpl implements LLMService {
       // Normalize query to lowercase to avoid capitalization issues with the model
       const normalizedQuery = query.toLowerCase();
       if (appConfig.debug.enableLogging) {
-        console.log('🤖 [DEBUG] Extracting nouns and adjectives with LLM...');
+        console.log('🤖 [DEBUG] Extracting nouns and adjectives with LM...');
       }
       
       // Extract nouns
@@ -312,7 +328,11 @@ class LLMServiceImpl implements LLMService {
       });
       const nounText = nounResult[0]?.generated_text || '';
       if (appConfig.debug.enableLogging) {
+      if (appConfig.debug.enableLogging) {
+      if (appConfig.debug.enableLogging) {
         console.log('🔍 [DEBUG] Extracted nouns:', nounText);
+      }
+      }
       }
       
       const nouns = nounText
@@ -329,7 +349,11 @@ class LLMServiceImpl implements LLMService {
       });
       const adjText = adjResult[0]?.generated_text || '';
       if (appConfig.debug.enableLogging) {
+      if (appConfig.debug.enableLogging) {
+      if (appConfig.debug.enableLogging) {
         console.log('🎨 [DEBUG] Extracted adjectives:', adjText);
+      }
+      }
       }
       
       const adjectives = adjText
@@ -401,4 +425,4 @@ class LLMServiceImpl implements LLMService {
 }
 
 // Export singleton instance
-export const llmService = new LLMServiceImpl();
+export const lmService = new LMServiceImpl();

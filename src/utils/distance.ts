@@ -76,8 +76,7 @@ export function filterPOIsByAttributes(pois: POI[], requestedAttributes: string[
   }
   
   return pois.filter(poi => {
-    if (!poi.attributes || poi.attributes.length === 0) {
-      console.log(`POI "${poi.name}" has no attributes, excluding from attribute filter`);
+    if (!poi.attributes) {
       return false;
     }
     
@@ -87,16 +86,9 @@ export function filterPOIsByAttributes(pois: POI[], requestedAttributes: string[
         const reqLower = reqAttr.toLowerCase();
         const poiLower = poiAttr.toLowerCase();
         const match = poiLower.includes(reqLower) || reqLower.includes(poiLower);
-        if (match) {
-          console.log(`Attribute match: "${reqAttr}" matches "${poiAttr}" in "${poi.name}"`);
-        }
         return match;
       })
     );
-    
-    if (!matches) {
-      console.log(`POI "${poi.name}" attributes ${JSON.stringify(poi.attributes)} don't match requested ${JSON.stringify(requestedAttributes)}`);
-    }
     
     return matches;
   });

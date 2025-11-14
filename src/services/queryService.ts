@@ -1,5 +1,6 @@
-import { QueryService, QueryResult } from '../types/services';
-import { llmService } from './llmService';
+import { QueryService } from '../types/services';
+import type { QueryResult } from '../types/services';
+import { lmService } from './lmService';
 import { dataService } from './dataService';
 import { AppError, ErrorCode, logError } from '../utils/errors';
 import { appConfig } from '../config/app.config';
@@ -35,8 +36,8 @@ class QueryServiceImpl implements QueryService {
         };
       }
 
-      // Check if LLM service is ready
-      if (!llmService.isReady()) {
+      // Check if LM service is ready
+      if (!lmService.isReady()) {
         return {
           type: 'error',
           message: 'AI service is still initializing. Please wait a moment and try again.'
@@ -45,11 +46,11 @@ class QueryServiceImpl implements QueryService {
 
       // Validate query with timeout
       if (appConfig.debug.enableLogging) {
-        console.log('🤖 [DEBUG] Validating query with LLM...');
+        console.log('🤖 [DEBUG] Validating query with LM...');
       }
       const validationResult = await this.validateQueryWithTimeout(query);
       if (appConfig.debug.enableLogging) {
-        console.log('🤖 [DEBUG] LLM validation result:', JSON.stringify(validationResult, null, 2));
+        console.log('🤖 [DEBUG] LM validation result:', JSON.stringify(validationResult, null, 2));
       }
 
       // Handle type request (user asking for supported types)
@@ -197,7 +198,7 @@ class QueryServiceImpl implements QueryService {
             }
             
             // Check if any requested attribute matches any POI attribute
-            const matches = requestedAttributes.some(reqAttr => 
+            const matches = requestedAttributes.some((reqAttr: string) => 
               poi.attributes!.some(poiAttr => {
                 const reqLower = reqAttr.toLowerCase();
                 const poiLower = poiAttr.toLowerCase();
@@ -290,7 +291,8 @@ class QueryServiceImpl implements QueryService {
       }, this.TIMEOUT_MS);
     });
 
-    const validationPromise = llmService.validateQuery(query);
+    // Create the validation promise
+    const validationPromise = lmService.analyzeQuery(query);
 
     return Promise.race([validationPromise, timeoutPromise]);
   }

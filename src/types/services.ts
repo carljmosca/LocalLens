@@ -1,4 +1,6 @@
-import { POI } from './poi';
+import type { POI } from './poi';
+
+export type { POI } from './poi';
 
 export interface POIWithNearby extends POI {
   nearbyPOIs: Array<POI & { distance: number }>;

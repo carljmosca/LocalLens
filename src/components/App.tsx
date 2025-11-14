@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useLLM } from '../contexts/LLMContext';
+import { LMProvider, useLM } from '../contexts/LMContext';
 import type { QueryResult } from '../types';
 import { queryService } from '../services/queryService';
 import { AppError, logError, detectBrowser, ErrorCode } from '../utils/errors';
@@ -9,11 +9,11 @@ import ResultsDisplay from './ResultsDisplay';
 import LoadingIndicator from './LoadingIndicator';
 
 /**
- * App Component
- * Root component that orchestrates the LocalLens
+ * App Content Component
+ * Main application content that uses LM context
  */
-function App() {
-  const { isLoading: llmLoading, loadingProgress, error: llmError, retry } = useLLM();
+const AppContent: React.FC = () => {
+  const { isLoading: lmLoading, loadingProgress, error: lmError, retry } = useLM();
   const [queryResult, setQueryResult] = useState<QueryResult | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [currentQuery, setCurrentQuery] = useState<string>('');
@@ -54,8 +54,8 @@ function App() {
     handleQuerySubmit(newQuery);
   };
 
-  // Show loading indicator while LLM is initializing
-  if (llmLoading) {
+  // Show loading indicator while lm is initializing
+  if (lmLoading) {
     return (
       <div className="app-container">
         <LoadingIndicator message="Initializing AI model and loading data..." progress={loadingProgress} />
@@ -64,15 +64,15 @@ function App() {
     );
   }
 
-  // Show error if LLM initialization failed
-  if (llmError) {
-    const errorMessage = llmError instanceof AppError 
-      ? llmError.userMessage 
-      : llmError.message;
+  // Show error if LM initialization failed
+  if (lmError) {
+    const errorMessage = lmError instanceof AppError 
+      ? lmError.userMessage 
+      : lmError.message;
     
     // Check if this is a WebGPU compatibility error
-    const isCompatibilityError = llmError instanceof AppError && 
-      llmError.code === ErrorCode.WEBGPU_UNAVAILABLE;
+    const isCompatibilityError = lmError instanceof AppError && 
+      lmError.code === ErrorCode.WEBGPU_UNAVAILABLE;
     
     // Get browser information for compatibility errors
     const browserInfo = isCompatibilityError ? detectBrowser() : null;
@@ -122,6 +122,18 @@ function App() {
         />
       </main>
     </div>
+  );
+};
+
+/**
+ * App Component
+ * Root component that provides LM context to the application
+ */
+function App() {
+  return (
+    <LMProvider>
+      <AppContent />
+    </LMProvider>
   );
 }
 

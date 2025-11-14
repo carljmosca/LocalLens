@@ -1,15 +1,12 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { llmService } from '../services/llmService';
+import { lmService } from '../services/lmService';
 import { dataService } from '../services/dataService';
-import type { LLMService } from '../types/llm';
 import { AppError, logError } from '../utils/errors';
 
 /**
- * Context value interface for LLM service
- * Provides access to LLM service instance and its initialization state
+ * Context value type for Language Model operations
  */
-interface LLMContextValue {
-  llmService: LLMService | null;
+interface LMContextValue {
   isLoading: boolean;
   loadingProgress: number;
   error: Error | null;
@@ -17,41 +14,39 @@ interface LLMContextValue {
 }
 
 /**
- * Props for LLMProvider component
+ * Props for LMProvider component
  */
-interface LLMProviderProps {
+interface LMProviderProps {
   children: ReactNode;
 }
 
 // Create context with default values
-const LLMContext = createContext<LLMContextValue | undefined>(undefined);
+const LMContext = createContext<LMContextValue | undefined>(undefined);
 
 /**
- * LLM Context Provider Component
- * Manages LLM service initialization and provides it to child components
+ * LM Context Provider Component
+ * Manages LM service initialization and provides it to child components
  * 
  * Handles:
- * - LLM service initialization on mount
+ * - LM service initialization on mount
  * - Loading state during initialization
  * - Error state if initialization fails
- * - Provides LLM service instance to consumers
+ * - Provides LM service instance to consumers
  * - Provides retry functionality for failed initialization
  */
-export const LLMProvider: React.FC<LLMProviderProps> = ({ children }) => {
+export const LMProvider: React.FC<LMProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [error, setError] = useState<Error | null>(null);
   const [retryCount, setRetryCount] = useState<number>(0);
 
   useEffect(() => {
-    // Lazy load LLM after initial page render for better perceived performance
-    const initializeLLM = async () => {
+    // Lazy load LM after initial page render for better perceived performance
+    const initializeLM = async () => {
       try {
         setIsLoading(true);
         setLoadingProgress(0);
         setError(null);
-        
-        console.log('Starting LLM initialization...');
         
         // Simulate progress updates during initialization
         const progressInterval = setInterval(() => {
@@ -61,25 +56,24 @@ export const LLMProvider: React.FC<LLMProviderProps> = ({ children }) => {
           });
         }, 300);
         
-        // Initialize both LLM and load POI data concurrently
+        // Initialize LM service in parallel with data loading
         await Promise.all([
-          llmService.initialize(),
+          lmService.initialize(),
           dataService.loadPOIs()
         ]);
         
         clearInterval(progressInterval);
         setLoadingProgress(100);
-        console.log('LLM and POI data initialization complete');
         
         // Small delay to show 100% before hiding
         await new Promise(resolve => setTimeout(resolve, 200));
         setIsLoading(false);
       } catch (err) {
         setLoadingProgress(0);
-        // Log the error with context
+        // Log detailed error information for debugging
         logError(
-          err instanceof Error ? err : new Error('Failed to initialize LLM service'),
-          'LLMContext.initializeLLM'
+          err instanceof Error ? err : new Error(String(err)),
+          'LMProvider.initializeLM'
         );
         
         // Set user-friendly error
@@ -96,9 +90,9 @@ export const LLMProvider: React.FC<LLMProviderProps> = ({ children }) => {
       }
     };
 
-    // Defer LLM initialization slightly to allow page to render first
+    // Defer LM initialization slightly to allow page to render first
     const timeoutId = setTimeout(() => {
-      initializeLLM();
+      initializeLM();
     }, 100);
 
     return () => clearTimeout(timeoutId);
@@ -109,8 +103,7 @@ export const LLMProvider: React.FC<LLMProviderProps> = ({ children }) => {
     setRetryCount(prev => prev + 1);
   };
 
-  const value: LLMContextValue = {
-    llmService,
+  const value: LMContextValue = {
     isLoading,
     loadingProgress,
     error,
@@ -118,24 +111,24 @@ export const LLMProvider: React.FC<LLMProviderProps> = ({ children }) => {
   };
 
   return (
-    <LLMContext.Provider value={value}>
+    <LMContext.Provider value={value}>
       {children}
-    </LLMContext.Provider>
+    </LMContext.Provider>
   );
 };
 
 /**
- * Custom hook to consume LLM context
- * Provides easy access to LLM service and its state
+ * Custom hook to consume LM context
+ * Provides easy access to LM service and its state
  * 
- * @throws Error if used outside of LLMProvider
- * @returns LLMContextValue containing service instance, loading state, error state, and retry function
+ * @throws Error if used outside of LMProvider
+ * @returns LMContextValue containing service instance, loading state, error state, and retry function
  */
-export const useLLM = (): LLMContextValue => {
-  const context = useContext(LLMContext);
+export const useLM = (): LMContextValue => {
+  const context = useContext(LMContext);
   
   if (context === undefined) {
-    throw new Error('useLLM must be used within an LLMProvider');
+    throw new Error('useLM must be used within a LMProvider');
   }
   
   return context;

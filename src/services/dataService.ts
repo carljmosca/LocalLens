@@ -122,31 +122,23 @@ class DataServiceImpl implements DataService {
    */
   queryPOIs(types: string[]): POI[] {
     try {
-      console.log('DataService.queryPOIs called with types:', types);
-      
       if (!this.isLoaded) {
         console.warn('DataService: queryPOIs called before data is loaded');
         return [];
       }
 
       if (!types || types.length === 0) {
-        console.log('DataService: No types provided, returning empty array');
         return [];
       }
 
       // Normalize types to lowercase for case-insensitive matching
-      const normalizedTypes = types.map(t => t.toLowerCase());
-      console.log('Normalized types:', normalizedTypes);
-
-      const filteredPOIs = this.pois.filter(poi => {
-        const matches = normalizedTypes.includes(poi.type.toLowerCase());
-        if (matches) {
-          console.log(`POI "${poi.name}" (${poi.type}) matches`);
-        }
-        return matches;
-      });
-
-      console.log(`DataService: Returning ${filteredPOIs.length} POIs`);
+          
+    const normalizedTypes = types.map(type => type.toLowerCase().replace('_', ' '));
+    
+    const filteredPOIs = this.pois.filter(poi => {
+      const matches = normalizedTypes.includes(poi.type.toLowerCase().replace('_', ' '));
+      return matches;
+    });
       return filteredPOIs;
     } catch (error) {
       logError(
