@@ -28,9 +28,6 @@ const POICard: React.FC<POICardProps> = React.memo(({ poi }) => {
             ))}
           </div>
         )}
-        <p className="poi-coordinates">
-          <strong>Coordinates:</strong> {poi.location.latitude.toFixed(4)}, {poi.location.longitude.toFixed(4)}
-        </p>
         {poi.address && (
           <p className="poi-address">
             <strong>Address:</strong> {poi.address}

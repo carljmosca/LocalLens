@@ -16,6 +16,7 @@ function App() {
   const { isLoading: llmLoading, loadingProgress, error: llmError, retry } = useLLM();
   const [queryResult, setQueryResult] = useState<QueryResult | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [currentQuery, setCurrentQuery] = useState<string>('');
 
   // Handle query submission - calls queryService to process the query
   const handleQuerySubmit = async (query: string) => {
@@ -42,6 +43,15 @@ function App() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  // Handle POI type button clicks
+  const handleTypeClick = (type: string) => {
+    const displayType = type.replace('_', ' ');
+    const newQuery = `show me ${displayType}`;
+    setCurrentQuery(newQuery);
+    // Automatically submit the query
+    handleQuerySubmit(newQuery);
   };
 
   // Show loading indicator while LLM is initializing
@@ -100,8 +110,16 @@ function App() {
     <div className="app-container">
       <Header />
       <main className="main-content" role="main">
-        <QueryInterface onSubmit={handleQuerySubmit} isLoading={isProcessing} />
-        <ResultsDisplay result={queryResult} />
+        <QueryInterface 
+          onSubmit={handleQuerySubmit} 
+          isLoading={isProcessing} 
+          initialQuery={currentQuery}
+          onQueryChange={setCurrentQuery}
+        />
+        <ResultsDisplay 
+          result={queryResult} 
+          onTypeClick={handleTypeClick}
+        />
       </main>
     </div>
   );

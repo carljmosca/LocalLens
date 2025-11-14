@@ -8,13 +8,14 @@ import { appConfig } from '../config/app.config';
  */
 interface ResultsDisplayProps {
   result: QueryResult | null;
+  onTypeClick?: (type: string) => void;
 }
 
 /**
  * ResultsDisplay Component
  * Renders different views based on QueryResult type
  */
-const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
+const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, onTypeClick }) => {
   // No results yet
   if (!result) {
     return (
@@ -80,13 +81,23 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
       <section className="results-display" role="region" aria-label="Supported POI types">
         <div className="types-container">
           <h2>Supported POI Types</h2>
-          <ul className="types-list" role="list" aria-label="Available POI categories">
-            {result.types.map((type) => (
-              <li key={type} className="type-item" role="listitem">
-                {type.replace('_', ' ')}
-              </li>
-            ))}
-          </ul>
+          <p className="types-description">Click any type below to search for it:</p>
+          <div className="types-buttons" role="list" aria-label="Available POI categories">
+            {result.types.map((type) => {
+              const displayName = type.replace('_', ' ');
+              return (
+                <button
+                  key={type}
+                  className="type-button"
+                  role="listitem"
+                  onClick={() => onTypeClick?.(type)}
+                  aria-label={`Search for ${displayName}`}
+                >
+                  {displayName}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
     );

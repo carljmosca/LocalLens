@@ -6,6 +6,8 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 interface QueryInterfaceProps {
   onSubmit: (query: string) => void;
   isLoading: boolean;
+  initialQuery?: string;
+  onQueryChange?: (query: string) => void;
 }
 
 /**
@@ -13,9 +15,21 @@ interface QueryInterfaceProps {
  * Provides text input and submit button for user queries
  * Includes debouncing for optional enhancement
  */
-const QueryInterface: React.FC<QueryInterfaceProps> = ({ onSubmit, isLoading }) => {
-  const [query, setQuery] = useState<string>('');
+const QueryInterface: React.FC<QueryInterfaceProps> = ({ 
+  onSubmit, 
+  isLoading, 
+  initialQuery = '', 
+  onQueryChange 
+}) => {
+  const [query, setQuery] = useState<string>(initialQuery);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Update query when initialQuery changes (for external updates)
+  useEffect(() => {
+    if (initialQuery !== query) {
+      setQuery(initialQuery);
+    }
+  }, [initialQuery]);
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
@@ -41,8 +55,10 @@ const QueryInterface: React.FC<QueryInterfaceProps> = ({ onSubmit, isLoading }) 
   }, [query, onSubmit]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
-  }, []);
+    const newQuery = e.target.value;
+    setQuery(newQuery);
+    onQueryChange?.(newQuery);
+  }, [onQueryChange]);
 
   return (
     <section className="query-interface" role="search">
