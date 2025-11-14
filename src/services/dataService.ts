@@ -40,7 +40,8 @@ class DataServiceImpl implements DataService {
    */
   private async _loadPOIsInternal(): Promise<void> {
     try {
-      const response = await fetch('/pois.json');
+      // Use relative path that works with base path in production
+      const response = await fetch(`${import.meta.env.BASE_URL}pois.json`);
       
       if (!response.ok) {
         throw new AppError(
