@@ -20,7 +20,7 @@ This proof-of-concept project is the use case that came to mind next.  The idea 
 
 ## Live Demo
 
-Visit the live demo at: `https://carljmosca.github.io/LocalLens/`
+Visit the [live demo here](https://carljmosca.github.io/LocalLens/)
 
 ## Local Development
 
