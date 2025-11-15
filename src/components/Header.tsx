@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { appConfig } from '../config/app.config';
 import { dataService } from '../services/dataService';
 import { InstallPrompt } from './InstallPrompt';
+import { DataSourceSelector } from './DataSourceSelector';
 
 /**
  * Header Component
@@ -53,6 +54,7 @@ const Header: React.FC = () => {
           <> Ask about {formatPoiTypes()}. Type "what types are supported?" to see all available categories.</>
         )}
       </p>
+      <DataSourceSelector />
     </header>
   );
 };

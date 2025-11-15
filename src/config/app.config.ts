@@ -28,7 +28,12 @@ export const appConfig = {
   
   // Data source
   data: {
-    poisJsonPath: 'pois.json'  // Located in public/ directory, accessible via BASE_URL
+    poisJsonPath: 'pois.json',  // Located in public/ directory, accessible via BASE_URL
+    availableDataSources: [
+      { name: 'Richmond, VA (Full)', file: 'pois.json', description: 'Full Richmond POI dataset' },
+      { name: 'Richmond, VA (Sample)', file: 'pois-sample.json', description: 'Sample dataset with museums, parks, and libraries' },
+      // Add more data sources here as needed
+    ]
   },
   
   // Debug configuration

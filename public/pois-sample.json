@@ -1,0 +1,89 @@
+{
+  "supportedTypes": [
+    "museum",
+    "park",
+    "library"
+  ],
+  "pois": [
+    {
+      "id": "mus_001",
+      "name": "Science Museum of Virginia",
+      "type": "museum",
+      "location": {
+        "latitude": 37.5654,
+        "longitude": -77.4748
+      },
+      "address": {
+        "street": "2500 W Broad St",
+        "city": "Richmond",
+        "state": "VA",
+        "zip": "23220"
+      },
+      "attributes": ["science", "interactive", "family-friendly"]
+    },
+    {
+      "id": "park_001",
+      "name": "Maymont Park",
+      "type": "park",
+      "location": {
+        "latitude": 37.5386,
+        "longitude": -77.4748
+      },
+      "address": {
+        "street": "1700 Hampton St",
+        "city": "Richmond",
+        "state": "VA",
+        "zip": "23220"
+      },
+      "attributes": ["historic", "gardens", "nature"]
+    },
+    {
+      "id": "lib_001",
+      "name": "Main Library",
+      "type": "library",
+      "location": {
+        "latitude": 37.5496,
+        "longitude": -77.4487
+      },
+      "address": {
+        "street": "101 E Franklin St",
+        "city": "Richmond",
+        "state": "VA",
+        "zip": "23219"
+      },
+      "attributes": ["public", "historic", "research"]
+    },
+    {
+      "id": "lib_002",
+      "name": "Ginter Park Library",
+      "type": "library",
+      "location": {
+        "latitude": 37.5733,
+        "longitude": -77.4541
+      },
+      "address": {
+        "street": "1500 N Lombardy St",
+        "city": "Richmond",
+        "state": "VA",
+        "zip": "23220"
+      },
+      "attributes": ["public", "community", "children"]
+    },
+    {
+      "id": "mus_002",
+      "name": "Virginia Museum of Fine Arts",
+      "type": "museum",
+      "location": {
+        "latitude": 37.5558,
+        "longitude": -77.4752
+      },
+      "address": {
+        "street": "200 N Boulevard",
+        "city": "Richmond",
+        "state": "VA",
+        "zip": "23220"
+      },
+      "attributes": ["art", "sculpture", "free admission"]
+    }
+  ]
+}

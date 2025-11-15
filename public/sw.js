@@ -1,14 +1,14 @@
 // Copyright (c) 2025 Mosca IT LLC. All rights reserved.
 // LocalLens Progressive Web App Service Worker
 
-const CACHE_NAME = 'locallens-v1';
+const CACHE_NAME = 'locallens-v2';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './pois.json',
   './icons/icon-192x192.png',
   './icons/icon-512x512.png'
+  // Note: POI data files are NOT cached on install - they use network-first strategy
 ];
 
 // Install event - cache static assets
@@ -46,6 +46,29 @@ self.addEventListener('fetch', (event) => {
   // Skip cross-origin requests and non-GET requests
   if (!event.request.url.startsWith(self.location.origin) || 
       event.request.method !== 'GET') {
+    return;
+  }
+
+  // Always fetch POI data files fresh (network-first strategy)
+  if (event.request.url.includes('.json') && 
+      (event.request.url.includes('pois') || event.request.url.includes('poi'))) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          // Update cache with fresh data
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(err => {
+          console.log('Service Worker: Network fetch failed for POI data, using cache:', err);
+          return caches.match(event.request);
+        })
+    );
     return;
   }
 

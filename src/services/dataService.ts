@@ -12,13 +12,25 @@ class DataServiceImpl implements DataService {
   private supportedTypes: string[] = [];
   private isLoaded: boolean = false;
   private loadPromise: Promise<void> | null = null;
+  private currentDataSource: string = 'pois.json';
 
   /**
    * Load POI data from the JSON file
    * Cached after first load to improve performance
+   * @param dataSourceFile - Optional custom data source file (defaults to current or pois.json)
    * @throws {AppError} If data loading or parsing fails
    */
-  async loadPOIs(): Promise<void> {
+  async loadPOIs(dataSourceFile?: string): Promise<void> {
+    // If no source specified, use current source (don't reset to default)
+    const requestedSource = dataSourceFile || this.currentDataSource || 'pois.json';
+    
+    // If requesting a different data source, invalidate cache
+    if (requestedSource !== this.currentDataSource) {
+      this.isLoaded = false;
+      this.loadPromise = null;
+      this.currentDataSource = requestedSource;
+    }
+
     // Return cached data if already loaded
     if (this.isLoaded) {
       return Promise.resolve();
@@ -30,18 +42,28 @@ class DataServiceImpl implements DataService {
     }
 
     // Create new load promise
-    this.loadPromise = this._loadPOIsInternal();
+    this.loadPromise = this._loadPOIsInternal(requestedSource);
     return this.loadPromise;
   }
 
   /**
    * Internal method to load POI data
+   * @param dataSourceFile - The data source file to load
    * @private
    */
-  private async _loadPOIsInternal(): Promise<void> {
+  private async _loadPOIsInternal(dataSourceFile: string): Promise<void> {
     try {
       // Use relative path that works with base path in production
-      const response = await fetch(`${import.meta.env.BASE_URL}pois.json`);
+      // Add cache-busting parameter to force fresh fetch
+      const cacheBuster = `?t=${Date.now()}`;
+      const url = `${import.meta.env.BASE_URL}${dataSourceFile}${cacheBuster}`;
+      console.log('🌐 [DEBUG] Fetching POI data from:', url);
+      
+      const response = await fetch(url, {
+        cache: 'no-store' // Tell browser not to use cache
+      });
+      
+      console.log('🌐 [DEBUG] Response status:', response.status, 'Type:', response.type);
       
       if (!response.ok) {
         throw new AppError(
@@ -89,9 +111,17 @@ class DataServiceImpl implements DataService {
         }
       }
 
+      console.log('📦 [DEBUG] Loaded POI data:', {
+        supportedTypes: data.supportedTypes,
+        poisCount: data.pois.length,
+        poisTypes: data.pois.map(p => p.type)
+      });
+      
       this.supportedTypes = data.supportedTypes;
       this.pois = data.pois;
       this.isLoaded = true;
+      
+      console.log('✅ [DEBUG] Data assigned to service. this.pois.length =', this.pois.length);
 
     } catch (error) {
       // Reset load promise on error to allow retry
@@ -131,14 +161,22 @@ class DataServiceImpl implements DataService {
         return [];
       }
 
+      console.log('🔍 [DEBUG] queryPOIs called with types:', types);
+      console.log('🔍 [DEBUG] Total POIs available:', this.pois.length);
+      console.log('🔍 [DEBUG] All POI types in data:', this.pois.map(p => p.type));
+
       // Normalize types to lowercase for case-insensitive matching
           
     const normalizedTypes = types.map(type => type.toLowerCase().replace('_', ' '));
+    console.log('🔍 [DEBUG] Normalized types to match:', normalizedTypes);
     
     const filteredPOIs = this.pois.filter(poi => {
-      const matches = normalizedTypes.includes(poi.type.toLowerCase().replace('_', ' '));
+      const poiTypeNormalized = poi.type.toLowerCase().replace('_', ' ');
+      const matches = normalizedTypes.includes(poiTypeNormalized);
+      console.log(`  Checking POI "${poi.name}" type "${poi.type}" (normalized: "${poiTypeNormalized}") - Match: ${matches}`);
       return matches;
     });
+      console.log('🔍 [DEBUG] Filtered POIs count:', filteredPOIs.length);
       return filteredPOIs;
     } catch (error) {
       logError(
@@ -155,6 +193,14 @@ class DataServiceImpl implements DataService {
    */
   getSupportedTypes(): string[] {
     return [...this.supportedTypes];
+  }
+
+  /**
+   * Get the currently loaded data source
+   * @returns The current data source file name
+   */
+  getCurrentDataSource(): string {
+    return this.currentDataSource;
   }
 }
 

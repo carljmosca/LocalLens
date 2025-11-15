@@ -238,9 +238,23 @@ class LMServiceImpl implements LMService {
       const types = this.matchNounsToTypes(nouns, dataService.getSupportedTypes());
       logger.log('🎯 [DEBUG] Matched POI types:', types);
 
-      // Filter out adjectives that are actually POI types or their plurals
+      // Common query verbs and words to filter out
+      const commonQueryWords = ['show', 'find', 'get', 'list', 'display', 'search', 'locate', 'give', 'tell', 'me', 'the', 'a', 'an'];
+      
+      // Filter out adjectives that are actually POI types, their plurals, or common query words
       const actualAdjectives = adjectives.filter(adj => {
         const adjLower = adj.toLowerCase();
+        
+        // Filter out common query words
+        if (commonQueryWords.includes(adjLower)) {
+          return false;
+        }
+        
+        // Filter out multi-word phrases containing query verbs (like "show library")
+        if (commonQueryWords.some(word => adjLower.includes(word))) {
+          return false;
+        }
+        
         // Check if this adjective is actually a POI type
         const isPoiType = dataService.getSupportedTypes().some(type => {
           const typeNormalized = type.replace('_', ' ').toLowerCase();
@@ -345,12 +359,19 @@ class LMServiceImpl implements LMService {
   private matchNounsToTypes(nouns: string[], supportedTypes: string[]): string[] {
     const matchedTypes: string[] = [];
     
+    logger.log('🔍 [DEBUG] Matching nouns to types');
+    logger.log('  Nouns to match:', nouns);
+    logger.log('  Supported types:', supportedTypes);
+    
     for (const noun of nouns) {
+      let matched = false;
       for (const type of supportedTypes) {
         // Normalize the type for comparison (handle underscores)
         const typeNormalized = type.replace('_', ' ').toLowerCase();
         const typeSingular = typeNormalized.replace(/s$/, ''); // Remove trailing 's'
         const nounSingular = noun.replace(/s$/, '');
+        
+        logger.log(`  Comparing noun "${noun}" (singular: "${nounSingular}") with type "${type}" (normalized: "${typeNormalized}", singular: "${typeSingular}")`);
         
         // Check if noun matches type (with or without plural)
         if (noun === typeNormalized || 
@@ -358,12 +379,18 @@ class LMServiceImpl implements LMService {
             nounSingular === typeSingular ||
             noun.includes(typeNormalized) ||
             typeNormalized.includes(noun)) {
+          logger.log(`    ✅ MATCH FOUND: "${noun}" matches "${type}"`);
           matchedTypes.push(type);
+          matched = true;
           break;
         }
       }
+      if (!matched) {
+        logger.log(`  ❌ No match found for noun: "${noun}"`);
+      }
     }
     
+    logger.log('🎯 [DEBUG] Final matched types:', matchedTypes);
     return [...new Set(matchedTypes)]; // Remove duplicates
   }
 

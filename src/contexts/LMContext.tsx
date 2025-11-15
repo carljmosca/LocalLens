@@ -58,11 +58,17 @@ export const LMProvider: React.FC<LMProviderProps> = ({ children }) => {
           });
         }, 300);
         
+        // Load data source from localStorage if available
+        const savedDataSource = localStorage.getItem('locallens-data-source') || undefined;
+        logger.log('🔧 [DEBUG] Loading data source:', savedDataSource || 'default (pois.json)');
+        
         // Initialize LM service in parallel with data loading
         await Promise.all([
           lmService.initialize(),
-          dataService.loadPOIs()
+          dataService.loadPOIs(savedDataSource)
         ]);
+        
+        logger.log('🔧 [DEBUG] Data loaded. Supported types:', dataService.getSupportedTypes());
         
         // Cache AI model for offline use if available
         logger.log('Attempting to cache AI model for offline use...');
