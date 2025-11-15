@@ -299,10 +299,10 @@
       "type": "restaurant",
       "attributes": ["mexican", "latin", "tacos"],
       "location": {
-        "latitude": 37.5501,
-        "longitude": -77.4667
+        "latitude": 37.53437691882714, 
+        "longitude": -77.43593002392927
       },
-      "address": "2800 W Broad St, Richmond, VA 23220"
+      "address": "320 S 12th St, Richmond, VA 23219"
     },
     {
       "id": "restaurant_014",
@@ -330,6 +330,7 @@
       "id": "restaurant_016",
       "name": "Tito's Taqueria & Bar",
       "type": "restaurant",
+      "attributes": ["mexican", "latin", "tacos"],
       "location": {
         "latitude": 37.544460066383195, 
         "longitude": -77.45144441302509
@@ -389,7 +390,7 @@
     },
     {
       "id": "theater_001",
-      "name": "Altria Theader",
+      "name": "Altria Theater",
       "type": "theater",
       "location": {
         "latitude": 37.54639500145054, 

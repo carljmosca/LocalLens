@@ -36,11 +36,16 @@ const Header: React.FC = () => {
 
   return (
     <header className="app-header" role="banner">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-        <div>
-          <h1>{appConfig.app.name}</h1>
+      <div style={{ position: 'relative', textAlign: 'center' }}>
+        <div style={{ 
+          position: 'absolute', 
+          top: 0, 
+          right: 0, 
+          zIndex: 10 
+        }}>
+          <InstallPrompt />
         </div>
-        <InstallPrompt />
+        <h1>{appConfig.app.name}</h1>
       </div>
       <p className="app-description">
         {appConfig.app.description} in {appConfig.location.displayName}.

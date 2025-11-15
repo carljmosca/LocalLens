@@ -1,3 +1,8 @@
+/**
+ * LocalLens Application Entry Point
+ * 
+ * Copyright (c) 2025 Mosca IT LLC. All rights reserved.
+ */
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './components/App'

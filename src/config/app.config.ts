@@ -1,6 +1,9 @@
 /**
  * Application Configuration
- * Centralized configuration for the LocalLens application
+ * 
+ * Central configuration object for the LocalLens application
+ * 
+ * Copyright (c) 2025 Mosca IT LLC. All rights reserved.
  */
 
 export const appConfig = {
@@ -31,6 +34,6 @@ export const appConfig = {
   // Debug configuration
   debug: {
     // Enable console logging for query processing
-    enableLogging: false
+    enableLogging: true  // Enabled to debug query issue
   }
 };

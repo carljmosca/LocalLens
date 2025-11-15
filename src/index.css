@@ -971,3 +971,62 @@ body {
     border-top-color: white;
   }
 }
+
+/* Footer Styles */
+.app-footer {
+  margin-top: 3rem;
+  padding: 2rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.footer-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.copyright {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+}
+
+.company-name {
+  color: #646cff;
+  font-weight: 600;
+}
+
+.app-info {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+@media (prefers-color-scheme: light) {
+  .app-footer {
+    border-top-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  .copyright {
+    color: rgba(0, 0, 0, 0.8);
+  }
+
+  .app-info {
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+@media (max-width: 768px) {
+  .app-footer {
+    margin-top: 2rem;
+    padding: 1.5rem 1rem;
+  }
+
+  .copyright,
+  .app-info {
+    font-size: 0.8rem;
+  }
+}

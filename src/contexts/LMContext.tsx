@@ -3,7 +3,7 @@ import { lmService } from '../services/lmService';
 import { dataService } from '../services/dataService';
 import { PWAUtils } from '../utils/pwa';
 import { AppError, logError } from '../utils/errors';
-import { appConfig } from '../config/app.config';
+import { logger } from '../utils/logger';
 
 /**
  * Context value type for Language Model operations
@@ -65,9 +65,7 @@ export const LMProvider: React.FC<LMProviderProps> = ({ children }) => {
         ]);
         
         // Cache AI model for offline use if available
-        if (appConfig.debug.enableLogging) {
-          console.log('Attempting to cache AI model for offline use...');
-        }
+        logger.log('Attempting to cache AI model for offline use...');
         try {
           // Note: The actual model URLs would come from the LM service
           // This is a simplified example - you'd need to get the actual model URLs
@@ -75,14 +73,10 @@ export const LMProvider: React.FC<LMProviderProps> = ({ children }) => {
             'https://huggingface.co/Xenova/flan-t5-small/resolve/main/onnx/decoder_model_merged.onnx',
             'flan-t5-small-decoder'
           );
-          if (appConfig.debug.enableLogging) {
-            console.log('AI model cached successfully for offline use');
-          }
+          logger.log('AI model cached successfully for offline use');
         } catch (modelCacheError) {
           // Don't fail initialization if caching fails
-          if (appConfig.debug.enableLogging) {
-            console.warn('Failed to cache AI model:', modelCacheError);
-          }
+          logger.warn('Failed to cache AI model:', modelCacheError);
         }
         
         clearInterval(progressInterval);

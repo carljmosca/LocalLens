@@ -141,3 +141,9 @@ Edit `public/pois.json` to add/modify POIs:
 - **Acceleration**: WebGPU / WebAssembly fallback
 - **Distance Calculations**: Haversine formula for accurate proximity search
 - **Maps Integration**: Google Maps links for addresses
+
+## License and Copyright
+
+Copyright (c) 2025 Mosca IT LLC. All rights reserved.
+
+This software and associated documentation files are proprietary to Mosca IT LLC. Unauthorized copying, distribution, modification, or use is strictly prohibited.

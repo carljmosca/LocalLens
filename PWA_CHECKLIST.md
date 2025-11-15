@@ -1,5 +1,7 @@
 # PWA Deployment and Testing Checklist
 
+**Copyright (c) 2025 Mosca IT LLC. All rights reserved.**
+
 ## Pre-deployment Checklist
 
 ### ✅ Build and Files

@@ -1,3 +1,8 @@
+/**
+ * LocalLens Main Application Component
+ * 
+ * Copyright (c) 2025 Mosca IT LLC. All rights reserved.
+ */
 import { useState } from 'react';
 import { LMProvider, useLM } from '../contexts/LMContext';
 import type { QueryResult } from '../types';
@@ -7,6 +12,7 @@ import Header from './Header';
 import QueryInterface from './QueryInterface';
 import ResultsDisplay from './ResultsDisplay';
 import LoadingIndicator from './LoadingIndicator';
+import Footer from './Footer';
 
 /**
  * App Content Component
@@ -121,6 +127,7 @@ const AppContent: React.FC = () => {
           onTypeClick={handleTypeClick}
         />
       </main>
+      <Footer />
     </div>
   );
 };

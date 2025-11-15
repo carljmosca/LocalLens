@@ -1,3 +1,11 @@
+/**
+ * Progressive Web App Utilities
+ * 
+ * Service worker registration, installation prompts, and PWA management
+ * 
+ * Copyright (c) 2025 Mosca IT LLC. All rights reserved.
+ */
+
 // Service Worker utilities for PWA functionality
 
 interface BeforeInstallPromptEvent extends Event {

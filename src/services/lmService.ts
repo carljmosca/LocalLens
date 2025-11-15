@@ -1,8 +1,8 @@
 import { pipeline } from '@huggingface/transformers';
 import type { LMService, ValidationResult } from '../types/lm';
 import { AppError, ErrorCode, logError, checkWebGPUAvailability } from '../utils/errors';
-import { appConfig } from '../config/app.config';
 import { dataService } from './dataService';
+import { logger } from '../utils/logger';
 
 /**
  * LM Service implementation using Hugging Face Transformers with WebGPU support
@@ -34,8 +34,8 @@ class LMServiceImpl implements LMService {
         const webgpuCheck = checkWebGPUAvailability();
         
         // Log browser information
-        if (webgpuCheck.browserInfo && appConfig.debug.enableLogging) {
-          console.log('Browser detected:', {
+        if (webgpuCheck.browserInfo) {
+          logger.log('Browser detected:', {
             name: webgpuCheck.browserInfo.name,
             version: webgpuCheck.browserInfo.version,
             supported: webgpuCheck.browserInfo.isSupported
@@ -46,11 +46,7 @@ class LMServiceImpl implements LMService {
           throw webgpuCheck.error;
         }
 
-        if (appConfig.debug.enableLogging) {
-        if (appConfig.debug.enableLogging) {
-          console.log('🤖 [DEBUG] Initializing LM model with WebGPU...');
-        }
-        }
+        logger.log('🤖 [DEBUG] Initializing LM model with WebGPU...');
         
         // Set ONNX Runtime log level to suppress warnings
         // This reduces console noise from internal optimization decisions
@@ -70,11 +66,7 @@ class LMServiceImpl implements LMService {
         );
 
         this.ready = true;
-        if (appConfig.debug.enableLogging) {
-        if (appConfig.debug.enableLogging) {
-          console.log('✅ [DEBUG] LM model initialized successfully');
-        }
-        }
+        logger.log('✅ [DEBUG] LM model initialized successfully');
       } catch (error) {
         this.ready = false;
         
@@ -174,9 +166,18 @@ class LMServiceImpl implements LMService {
           if (targetTypes.length > 0) targetType = targetTypes[0];
           if (nearbyTypes.length > 0) nearbyType = nearbyTypes[0];
           
+          // Common query verbs to filter out from attributes
+          const commonVerbs = ['show', 'find', 'get', 'list', 'display', 'search', 'locate', 'give', 'tell'];
+          
           // Filter adjectives that are not POI types (these become attributes)
+          // Also filter out common query verbs
           targetAttributes = targetPart.adjectives.filter(adj => {
             const adjLower = adj.toLowerCase();
+            // Filter out common verbs (exact match or starting with verb)
+            if (commonVerbs.some(verb => adjLower === verb || adjLower.startsWith(verb + ' '))) {
+              return false;
+            }
+            // Filter out POI types
             return !dataService.getSupportedTypes().some(type => {
               const typeNormalized = type.replace('_', ' ').toLowerCase();
               const typeSingular = typeNormalized.replace(/s$/, '');
@@ -189,6 +190,11 @@ class LMServiceImpl implements LMService {
           
           nearbyAttributes = nearbyPart.adjectives.filter(adj => {
             const adjLower = adj.toLowerCase();
+            // Filter out common verbs (exact match or starting with verb)
+            if (commonVerbs.some(verb => adjLower === verb || adjLower.startsWith(verb + ' '))) {
+              return false;
+            }
+            // Filter out POI types
             return !dataService.getSupportedTypes().some(type => {
               const typeNormalized = type.replace('_', ' ').toLowerCase();
               const typeSingular = typeNormalized.replace(/s$/, '');
@@ -199,15 +205,13 @@ class LMServiceImpl implements LMService {
             });
           });
           
-          if (appConfig.debug.enableLogging) {
-            console.log('🎯 [DEBUG] Proximity query detected:', {
-              target: targetType,
-              nearby: nearbyType,
-              targetAttributes,
-              nearbyAttributes,
-              original: query
-            });
-          }
+          logger.log('🎯 [DEBUG] Proximity query detected:', {
+            target: targetType,
+            nearby: nearbyType,
+            targetAttributes,
+            nearbyAttributes,
+            original: query
+          });
           break;
         }
       }
@@ -227,20 +231,12 @@ class LMServiceImpl implements LMService {
 
       // Extract nouns and adjectives from the query using LM
       const { nouns, adjectives } = await this.extractNounsAndAdjectives(query);
-      if (appConfig.debug.enableLogging) {
-        console.log('🔍 [DEBUG] Nouns extracted from query:', nouns);
-        console.log('🔍 [DEBUG] Adjectives extracted from query:', adjectives);
-      }
+      logger.log('🔍 [DEBUG] Nouns extracted from query:', nouns);
+      logger.log('🔍 [DEBUG] Adjectives extracted from query:', adjectives);
       
       // Match nouns against supported types
       const types = this.matchNounsToTypes(nouns, dataService.getSupportedTypes());
-      if (appConfig.debug.enableLogging) {
-      if (appConfig.debug.enableLogging) {
-      if (appConfig.debug.enableLogging) {
-        console.log('🎯 [DEBUG] Matched POI types:', types);
-      }
-      }
-      }
+      logger.log('🎯 [DEBUG] Matched POI types:', types);
 
       // Filter out adjectives that are actually POI types or their plurals
       const actualAdjectives = adjectives.filter(adj => {
@@ -257,13 +253,7 @@ class LMServiceImpl implements LMService {
         return !isPoiType;
       });
       
-      if (appConfig.debug.enableLogging) {
-      if (appConfig.debug.enableLogging) {
-      if (appConfig.debug.enableLogging) {
-        console.log('🎨 [DEBUG] Actual adjectives (after filtering POI types):', actualAdjectives);
-      }
-      }
-      }
+      logger.log('🎨 [DEBUG] Actual adjectives (after filtering POI types):', actualAdjectives);
 
       return {
         isValid: types.length > 0,
@@ -302,22 +292,14 @@ class LMServiceImpl implements LMService {
    */
   async extractNounsAndAdjectives(query: string): Promise<{ nouns: string[], adjectives: string[] }> {
     if (!this.ready || !this.model) {
-      if (appConfig.debug.enableLogging) {
-      if (appConfig.debug.enableLogging) {
-      if (appConfig.debug.enableLogging) {
-        console.log('⚠️ [DEBUG] LM not ready, returning empty arrays');
-      }
-      }
-      }
+      logger.log('⚠️ [DEBUG] LM not ready, returning empty arrays');
       return { nouns: [], adjectives: [] };
     }
 
     try {
       // Normalize query to lowercase to avoid capitalization issues with the model
       const normalizedQuery = query.toLowerCase();
-      if (appConfig.debug.enableLogging) {
-        console.log('🤖 [DEBUG] Extracting nouns and adjectives with LM...');
-      }
+      logger.log('🤖 [DEBUG] Extracting nouns and adjectives with LM...');
       
       // Extract nouns
       const nounPrompt = `Extract only the nouns from this query: ${normalizedQuery}`;
@@ -327,13 +309,7 @@ class LMServiceImpl implements LMService {
         do_sample: false
       });
       const nounText = nounResult[0]?.generated_text || '';
-      if (appConfig.debug.enableLogging) {
-      if (appConfig.debug.enableLogging) {
-      if (appConfig.debug.enableLogging) {
-        console.log('🔍 [DEBUG] Extracted nouns:', nounText);
-      }
-      }
-      }
+      logger.log('🔍 [DEBUG] Extracted nouns:', nounText);
       
       const nouns = nounText
         .split(/,|\sand\s/)
@@ -348,13 +324,7 @@ class LMServiceImpl implements LMService {
         do_sample: false
       });
       const adjText = adjResult[0]?.generated_text || '';
-      if (appConfig.debug.enableLogging) {
-      if (appConfig.debug.enableLogging) {
-      if (appConfig.debug.enableLogging) {
-        console.log('🎨 [DEBUG] Extracted adjectives:', adjText);
-      }
-      }
-      }
+      logger.log('🔍 [DEBUG] Extracted adjectives:', adjText);
       
       const adjectives = adjText
         .split(/,|\sand\s/)

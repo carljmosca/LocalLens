@@ -1,5 +1,7 @@
 # PWA Features Documentation
 
+**Copyright (c) 2025 Mosca IT LLC. All rights reserved.**
+
 LocalLens has been enhanced with Progressive Web App (PWA) capabilities, providing an app-like experience with offline functionality.
 
 ## PWA Features

@@ -1,3 +1,6 @@
+// Copyright (c) 2025 Mosca IT LLC. All rights reserved.
+// LocalLens Progressive Web App Service Worker
+
 const CACHE_NAME = 'locallens-v1';
 const STATIC_ASSETS = [
   './',

@@ -5,6 +5,7 @@ import { dataService } from './dataService';
 import { AppError, ErrorCode, logError } from '../utils/errors';
 import { appConfig } from '../config/app.config';
 import { findPOIsWithNearby, filterPOIsByAttributes } from '../utils/distance';
+import { logger } from '../utils/logger';
 
 /**
  * Query Service implementation
@@ -22,10 +23,8 @@ class QueryServiceImpl implements QueryService {
    */
   async processQuery(query: string): Promise<QueryResult> {
     try {
-      if (appConfig.debug.enableLogging) {
-        console.log('=== [DEBUG] Query Processing Started ===');
-        console.log('🔍 [DEBUG] User prompt:', query);
-      }
+      logger.log('=== [DEBUG] Query Processing Started ===');
+      logger.log('🔍 [DEBUG] User prompt:', query);
       
       // Validate input
       if (!query || query.trim().length === 0) {
@@ -45,19 +44,13 @@ class QueryServiceImpl implements QueryService {
       }
 
       // Validate query with timeout
-      if (appConfig.debug.enableLogging) {
-        console.log('🤖 [DEBUG] Validating query with LM...');
-      }
+      logger.log('🤖 [DEBUG] Validating query with LM...');
       const validationResult = await this.validateQueryWithTimeout(query);
-      if (appConfig.debug.enableLogging) {
-        console.log('🤖 [DEBUG] LM validation result:', JSON.stringify(validationResult, null, 2));
-      }
+      logger.log('🤖 [DEBUG] LM validation result:', JSON.stringify(validationResult, null, 2));
 
       // Handle type request (user asking for supported types)
       if (validationResult.isTypeRequest) {
-        if (appConfig.debug.enableLogging) {
-          console.log('📝 [DEBUG] Type request detected');
-        }
+        logger.log('📝 [DEBUG] Type request detected');
         return {
           type: 'types',
           types: dataService.getSupportedTypes()
@@ -66,9 +59,7 @@ class QueryServiceImpl implements QueryService {
 
       // Handle invalid query (no valid POI types found)
       if (!validationResult.isValid || validationResult.types.length === 0) {
-        if (appConfig.debug.enableLogging) {
-          console.log('⚠️ [DEBUG] No valid POI types found in query');
-        }
+        logger.log('⚠️ [DEBUG] No valid POI types found in query');
         return {
           type: 'suggestions',
           message: 'I couldn\'t identify any valid POI types in your query.',
@@ -77,61 +68,45 @@ class QueryServiceImpl implements QueryService {
       }
 
       // Ensure POI data is loaded before querying
-      if (appConfig.debug.enableLogging) {
-        console.log('📊 [DEBUG] Ensuring POI data is loaded...');
-      }
+      logger.log('📊 [DEBUG] Ensuring POI data is loaded...');
       await dataService.loadPOIs();
       
       // Handle proximity queries (e.g., "parks with nearby restaurants")
       if (validationResult.isProximityQuery && validationResult.targetType && validationResult.nearbyType) {
-        if (appConfig.debug.enableLogging) {
-          console.log('🎯 [DEBUG] Processing proximity query:', {
-            target: validationResult.targetType,
-            nearby: validationResult.nearbyType,
-            distance: `${appConfig.search.nearbyDistanceMiles} miles`,
-            targetAttributes: validationResult.attributes?.cuisine,
-            nearbyAttributes: validationResult.nearbyAttributes?.cuisine
-          });
-        }
+        logger.log('🎯 [DEBUG] Processing proximity query:', {
+          target: validationResult.targetType,
+          nearby: validationResult.nearbyType,
+          distance: `${appConfig.search.nearbyDistanceMiles} miles`,
+          targetAttributes: validationResult.attributes?.cuisine,
+          nearbyAttributes: validationResult.nearbyAttributes?.cuisine
+        });
         
         let targetPOIs = dataService.queryPOIs([validationResult.targetType]);
         let nearbyPOIs = dataService.queryPOIs([validationResult.nearbyType]);
         
-        if (appConfig.debug.enableLogging) {
-          console.log(`🔧 [DEBUG] Found ${targetPOIs.length} ${validationResult.targetType}s and ${nearbyPOIs.length} ${validationResult.nearbyType}s before attribute filtering`);
-        }
+        logger.log(`🔧 [DEBUG] Found ${targetPOIs.length} ${validationResult.targetType}s and ${nearbyPOIs.length} ${validationResult.nearbyType}s before attribute filtering`);
         
         // Filter target POIs by attributes if specified
         if (validationResult.attributes?.cuisine && validationResult.attributes.cuisine.length > 0) {
-          if (appConfig.debug.enableLogging) {
-            console.log('🔧 [DEBUG] Filtering target POIs by attributes:', validationResult.attributes.cuisine);
-          }
+          logger.log('🔧 [DEBUG] Filtering target POIs by attributes:', validationResult.attributes.cuisine);
           targetPOIs = filterPOIsByAttributes(targetPOIs, validationResult.attributes.cuisine);
-          if (appConfig.debug.enableLogging) {
-            console.log(`🔧 [DEBUG] Found ${targetPOIs.length} target POIs after filtering`);
-          }
+          logger.log(`🔧 [DEBUG] Found ${targetPOIs.length} target POIs after filtering`);
         }
         
         // Filter nearby POIs by attributes if specified
         if (validationResult.nearbyAttributes?.cuisine && validationResult.nearbyAttributes.cuisine.length > 0) {
-          if (appConfig.debug.enableLogging) {
-            console.log('🔧 [DEBUG] Filtering nearby POIs by attributes:', validationResult.nearbyAttributes.cuisine);
-          }
+          logger.log('🔧 [DEBUG] Filtering nearby POIs by attributes:', validationResult.nearbyAttributes.cuisine);
           nearbyPOIs = filterPOIsByAttributes(nearbyPOIs, validationResult.nearbyAttributes.cuisine);
-          if (appConfig.debug.enableLogging) {
-            console.log(`🔧 [DEBUG] Found ${nearbyPOIs.length} nearby POIs after filtering`);
-          }
+          logger.log(`🔧 [DEBUG] Found ${nearbyPOIs.length} nearby POIs after filtering`);
         }
         
         const poisWithNearby = findPOIsWithNearby(targetPOIs, nearbyPOIs);
-        if (appConfig.debug.enableLogging) {
-          console.log(`📍 [DEBUG] Found ${poisWithNearby.length} ${validationResult.targetType}s with nearby ${validationResult.nearbyType}s`);
-          console.log('📍 [DEBUG] Results summary:', poisWithNearby.map(poi => ({
-            name: poi.name,
-            nearbyCount: poi.nearbyPOIs.length,
-            nearbyNames: poi.nearbyPOIs.map(n => n.name)
-          })));
-        }
+        logger.log(`📍 [DEBUG] Found ${poisWithNearby.length} ${validationResult.targetType}s with nearby ${validationResult.nearbyType}s`);
+        logger.log('📍 [DEBUG] Results summary:', poisWithNearby.map(poi => ({
+          name: poi.name,
+          nearbyCount: poi.nearbyPOIs.length,
+          nearbyNames: poi.nearbyPOIs.map(n => n.name)
+        })));
         
         if (poisWithNearby.length === 0) {
           const targetDisplay = validationResult.targetType.replace('_', ' ');
@@ -154,9 +129,7 @@ class QueryServiceImpl implements QueryService {
           };
         }
         
-        if (appConfig.debug.enableLogging) {
-          console.log('✅ [DEBUG] Proximity Query Processing Complete');
-        }
+        logger.log('✅ [DEBUG] Proximity Query Processing Complete');
         return {
           type: 'grouped',
           poisWithNearby,
@@ -167,13 +140,9 @@ class QueryServiceImpl implements QueryService {
       }
       
       // Regular query processing
-      if (appConfig.debug.enableLogging) {
-        console.log('🔍 [DEBUG] Processing regular query with types:', validationResult.types);
-      }
+      logger.log('🔍 [DEBUG] Processing regular query with types:', validationResult.types);
       let pois = dataService.queryPOIs(validationResult.types);
-      if (appConfig.debug.enableLogging) {
-        console.log(`🔍 [DEBUG] Found ${pois.length} POIs before filtering`);
-      }
+      logger.log(`🔍 [DEBUG] Found ${pois.length} POIs before filtering`);
       
       // Filter by attributes if specified (e.g., cuisine, style, etc.)
       // Only filter if we have attributes AND at least one POI has attributes
@@ -185,15 +154,11 @@ class QueryServiceImpl implements QueryService {
         
         // Only apply attribute filtering if some POIs have attributes
         if (poisWithAttributes.length > 0) {
-          if (appConfig.debug.enableLogging) {
-            console.log('🔧 [DEBUG] Filtering by attributes:', requestedAttributes);
-          }
+          logger.log('🔧 [DEBUG] Filtering by attributes:', requestedAttributes);
           
           pois = pois.filter(poi => {
             if (!poi.attributes || poi.attributes.length === 0) {
-              if (appConfig.debug.enableLogging) {
-                console.log(`🔧 [DEBUG] POI "${poi.name}" has no attributes, excluding`);
-              }
+              logger.log(`🔧 [DEBUG] POI "${poi.name}" has no attributes, excluding`);
               return false;
             }
             
@@ -203,26 +168,22 @@ class QueryServiceImpl implements QueryService {
                 const reqLower = reqAttr.toLowerCase();
                 const poiLower = poiAttr.toLowerCase();
                 const match = poiLower.includes(reqLower) || reqLower.includes(poiLower);
-                if (match && appConfig.debug.enableLogging) {
-                  console.log(`🔧 [DEBUG] Match found: "${reqAttr}" matches "${poiAttr}" in "${poi.name}"`);
+                if (match) {
+                  logger.log(`🔧 [DEBUG] Match found: "${reqAttr}" matches "${poiAttr}" in "${poi.name}"`);
                 }
                 return match;
               })
             );
             
-            if (!matches && appConfig.debug.enableLogging) {
-              console.log(`🔧 [DEBUG] POI "${poi.name}" attributes ${JSON.stringify(poi.attributes)} don't match ${JSON.stringify(requestedAttributes)}`);
+            if (!matches) {
+              logger.log(`🔧 [DEBUG] POI "${poi.name}" attributes ${JSON.stringify(poi.attributes)} don't match ${JSON.stringify(requestedAttributes)}`);
             }
             
             return matches;
           });
-          if (appConfig.debug.enableLogging) {
-            console.log('🔧 [DEBUG] POIs found after attribute filter:', pois.length);
-          }
+          logger.log('🔧 [DEBUG] POIs found after attribute filter:', pois.length);
         } else {
-          if (appConfig.debug.enableLogging) {
-            console.log('🔧 [DEBUG] No POIs have attributes, skipping attribute filter');
-          }
+          logger.log('🔧 [DEBUG] No POIs have attributes, skipping attribute filter');
         }
       }
 
@@ -236,10 +197,8 @@ class QueryServiceImpl implements QueryService {
       }
 
       // Return successful results
-      if (appConfig.debug.enableLogging) {
-        console.log('✅ [DEBUG] Regular Query Processing Complete');
-        console.log('✅ [DEBUG] Final results:', pois.map(poi => poi.name));
-      }
+      logger.log('✅ [DEBUG] Regular Query Processing Complete');
+      logger.log('✅ [DEBUG] Final results:', pois.map(poi => poi.name));
       return {
         type: 'success',
         pois
