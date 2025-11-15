@@ -25,7 +25,7 @@ export const appConfig = {
   
   // Data source
   data: {
-    poisJsonPath: '/src/data/pois.json'
+    poisJsonPath: 'pois.json'  // Located in public/ directory, accessible via BASE_URL
   },
   
   // Debug configuration

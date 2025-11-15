@@ -2,6 +2,7 @@ import { pipeline } from '@huggingface/transformers';
 import type { LMService, ValidationResult } from '../types/lm';
 import { AppError, ErrorCode, logError, checkWebGPUAvailability } from '../utils/errors';
 import { appConfig } from '../config/app.config';
+import { dataService } from './dataService';
 
 /**
  * LM Service implementation using Hugging Face Transformers with WebGPU support
@@ -11,7 +12,6 @@ class LMServiceImpl implements LMService {
   private model: any = null;
   private ready: boolean = false;
   private initializationPromise: Promise<void> | null = null;
-  private supportedTypes = ['museum', 'hospital', 'park', 'restaurant', 'coffee_shop'];
 
   /**
    * Initialize the WebGPU LM model
@@ -168,8 +168,8 @@ class LMServiceImpl implements LMService {
           const nearbyPart = await this.extractNounsAndAdjectives(match[2]);
           
           // Match nouns to POI types
-          const targetTypes = this.matchNounsToTypes(targetPart.nouns, this.supportedTypes);
-          const nearbyTypes = this.matchNounsToTypes(nearbyPart.nouns, this.supportedTypes);
+          const targetTypes = this.matchNounsToTypes(targetPart.nouns, dataService.getSupportedTypes());
+          const nearbyTypes = this.matchNounsToTypes(nearbyPart.nouns, dataService.getSupportedTypes());
           
           if (targetTypes.length > 0) targetType = targetTypes[0];
           if (nearbyTypes.length > 0) nearbyType = nearbyTypes[0];
@@ -177,7 +177,7 @@ class LMServiceImpl implements LMService {
           // Filter adjectives that are not POI types (these become attributes)
           targetAttributes = targetPart.adjectives.filter(adj => {
             const adjLower = adj.toLowerCase();
-            return !this.supportedTypes.some(type => {
+            return !dataService.getSupportedTypes().some(type => {
               const typeNormalized = type.replace('_', ' ').toLowerCase();
               const typeSingular = typeNormalized.replace(/s$/, '');
               const adjSingular = adjLower.replace(/s$/, '');
@@ -189,7 +189,7 @@ class LMServiceImpl implements LMService {
           
           nearbyAttributes = nearbyPart.adjectives.filter(adj => {
             const adjLower = adj.toLowerCase();
-            return !this.supportedTypes.some(type => {
+            return !dataService.getSupportedTypes().some(type => {
               const typeNormalized = type.replace('_', ' ').toLowerCase();
               const typeSingular = typeNormalized.replace(/s$/, '');
               const adjSingular = adjLower.replace(/s$/, '');
@@ -233,7 +233,7 @@ class LMServiceImpl implements LMService {
       }
       
       // Match nouns against supported types
-      const types = this.matchNounsToTypes(nouns, this.supportedTypes);
+      const types = this.matchNounsToTypes(nouns, dataService.getSupportedTypes());
       if (appConfig.debug.enableLogging) {
       if (appConfig.debug.enableLogging) {
       if (appConfig.debug.enableLogging) {
@@ -246,7 +246,7 @@ class LMServiceImpl implements LMService {
       const actualAdjectives = adjectives.filter(adj => {
         const adjLower = adj.toLowerCase();
         // Check if this adjective is actually a POI type
-        const isPoiType = this.supportedTypes.some(type => {
+        const isPoiType = dataService.getSupportedTypes().some(type => {
           const typeNormalized = type.replace('_', ' ').toLowerCase();
           const typeSingular = typeNormalized.replace(/s$/, '');
           const adjSingular = adjLower.replace(/s$/, '');
@@ -293,7 +293,7 @@ class LMServiceImpl implements LMService {
    */
   async extractPOITypes(query: string): Promise<string[]> {
     const { nouns } = await this.extractNounsAndAdjectives(query);
-    return this.matchNounsToTypes(nouns, this.supportedTypes);
+    return this.matchNounsToTypes(nouns, dataService.getSupportedTypes());
   }
 
   /**
@@ -420,7 +420,7 @@ class LMServiceImpl implements LMService {
    * Get the list of supported POI types
    */
   getSupportedTypes(): string[] {
-    return [...this.supportedTypes];
+    return dataService.getSupportedTypes();
   }
 }
 

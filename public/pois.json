@@ -1,5 +1,5 @@
 {
-  "supportedTypes": ["museum", "hospital", "park", "restaurant", "coffee_shop"],
+  "supportedTypes": ["museum", "hospital", "park", "restaurant", "coffee_shop", "theater"],
   "pois": [
     {
       "id": "museum_001",
@@ -201,8 +201,8 @@
       "type": "restaurant",
       "attributes": ["seafood", "oysters"],
       "location": {
-        "latitude": 37.5523,
-        "longitude": -77.4623
+        "latitude": 37.54296601647497, 
+        "longitude": -77.43926310068501
       },
       "address": "320 E Grace St, Richmond, VA 23219"
     },
@@ -311,10 +311,21 @@
       "type": "restaurant",
       "attributes": ["japanese", "asian", "sushi"],
       "location": {
-        "latitude": 37.5534,
-        "longitude": -77.4645
+        "latitude": 37.56082197819556, 
+        "longitude": -77.47434810222124
       },
-      "address": "2913 W Cary St, Richmond, VA 23221"
+      "address": "606 N Sheppard St, Richmond, VA 23221"
+    },
+    {
+      "id": "restaurant_016",
+      "name": "Tito's Taqueria & Bar",
+      "type": "restaurant",
+      "location": {
+        "latitude": 37.544460066383195, 
+        "longitude": -77.45144441302509
+  
+      },
+      "address": "733 W Cary St, Richmond, VA 23220"
     },
     {
       "id": "coffee_001",
@@ -365,6 +376,16 @@
         "longitude": -77.4678
       },
       "address": "3101 W Cary St, Richmond, VA 23221"
+    },
+    {
+      "id": "theater_001",
+      "name": "Altria Theader",
+      "type": "theater",
+      "location": {
+        "latitude": 37.54639500145054, 
+        "longitude": -77.45216933105756
+      },
+      "address": "6 N Laurel St, Richmond, VA 23220"
     }
   ]
 }

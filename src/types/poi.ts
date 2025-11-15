@@ -1,4 +1,6 @@
-export type POIType = 'museum' | 'hospital' | 'park' | 'restaurant' | 'coffee_shop';
+// POI types are now dynamically loaded from the data file
+// This allows for flexible addition of new types without code changes
+export type POIType = string;
 
 export interface Location {
   latitude: number;
