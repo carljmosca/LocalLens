@@ -39,6 +39,6 @@ export const appConfig = {
   // Debug configuration
   debug: {
     // Enable console logging for query processing
-    enableLogging: false  // Enabled to debug query issue
+    enableLogging: true  // Enabled to debug query issue
   }
 };

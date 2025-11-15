@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { lmService } from '../services/lmService';
 import { logger } from '../utils/logger';
+import { sqliteService } from '../services/sqliteService';
 
 export const SQLGeneratorDebug: React.FC = () => {
   const [nlQuery, setNlQuery] = useState('Find museums with nearby French restaurants');
@@ -34,6 +35,28 @@ export const SQLGeneratorDebug: React.FC = () => {
     }
   };
 
+  const execute = async () => {
+    if (!sql) return;
+    setError(null);
+    setLoading(true);
+    try {
+      await sqliteService.init();
+      const results = sqliteService.runQuery(sql);
+      if (results.length === 0) {
+        setSql(prev => prev + '\n-- (No rows returned)');
+      } else {
+        // show first result table under SQL
+        const r = results[0];
+        const rows = r.values.map((v: any[]) => Object.fromEntries(r.columns.map((c: string, i: number) => [c, v[i]])));
+        setSql(prev => prev + '\n\n-- Results (first table)\n' + JSON.stringify(rows, null, 2));
+      }
+    } catch (err: any) {
+      setError(err?.message || String(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div style={{ marginTop: 10, fontSize: 12 }}>
       <div style={{ marginBottom: 6 }}>
@@ -49,6 +72,9 @@ export const SQLGeneratorDebug: React.FC = () => {
       <div style={{ display: 'flex', gap: 6 }}>
         <button onClick={run} disabled={loading} style={{ padding: '4px 8px' }}>
           {loading ? 'Running…' : 'Generate SQL'}
+        </button>
+        <button onClick={execute} disabled={loading || !sql} style={{ padding: '4px 8px' }}>
+          Execute Read-Only
         </button>
         <button onClick={() => { setNlQuery('Find museums with nearby French restaurants'); setSql(null); setError(null); }} style={{ padding: '4px 8px' }}>
           Reset Example
