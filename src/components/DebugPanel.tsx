@@ -5,6 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import { logger } from '../utils/logger';
 import { appConfig } from '../config/app.config';
+import SQLGeneratorDebug from './SQLGeneratorDebug';
 
 /**
  * Debug Panel for mobile debugging
@@ -117,6 +118,16 @@ export const DebugPanel: React.FC = () => {
               <strong>{key}:</strong> {String(value)}
             </div>
           ))}
+        </div>
+      </details>
+
+      <details style={{ marginTop: 10 }}>
+        <summary style={{ cursor: 'pointer', marginBottom: '5px' }}>🧾 SQL Generator</summary>
+        <div style={{ paddingLeft: '10px' }}>
+          <div style={{ fontSize: 11, color: '#aaa', marginBottom: 6 }}>
+            Quick tool: generate SQL from a natural language request using the in-browser LM.
+          </div>
+          <SQLGeneratorDebug />
         </div>
       </details>
 
