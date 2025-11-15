@@ -8,14 +8,14 @@ import { findPOIsWithNearby, filterPOIsByAttributes } from '../utils/distance';
 
 /**
  * Query Service implementation
- * Orchestrates LLM validation and data retrieval to process user queries
+ * Orchestrates LM validation and data retrieval to process user queries
  */
 class QueryServiceImpl implements QueryService {
   private readonly TIMEOUT_MS = 3000;
 
   /**
    * Process a user query and return structured results
-   * Integrates LLM validation with data retrieval
+   * Integrates LM validation with data retrieval
    * 
    * @param query - The natural language query from the user
    * @returns QueryResult with POIs, suggestions, types list, or error
@@ -278,7 +278,7 @@ class QueryServiceImpl implements QueryService {
 
   /**
    * Validate query with timeout handling
-   * Ensures LLM inference completes within the target time
+   * Ensures LM inference completes within the target time
    */
   private async validateQueryWithTimeout(query: string) {
     const timeoutPromise = new Promise<never>((_, reject) => {

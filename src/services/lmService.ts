@@ -14,7 +14,7 @@ class LMServiceImpl implements LMService {
   private supportedTypes = ['museum', 'hospital', 'park', 'restaurant', 'coffee_shop'];
 
   /**
-   * Initialize the WebGPU LLM model
+   * Initialize the WebGPU LM model
    * Loads a text generation model optimized for running in the browser
    */
   async initialize(): Promise<void> {
@@ -80,18 +80,18 @@ class LMServiceImpl implements LMService {
         
         // If it's already an AppError, just log and rethrow
         if (error instanceof AppError) {
-          logError(error, 'LLMService.initialize');
+          logError(error, 'LMService.initialize');
           throw error;
         }
         
         // Convert to AppError for model loading failures
         const appError = new AppError(
-          `Failed to initialize LLM model: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to initialize LM model: ${error instanceof Error ? error.message : String(error)}`,
           ErrorCode.MODEL_LOAD_FAILED,
           'Failed to load AI model. Please refresh the page to try again.'
         );
         
-        logError(appError, 'LLMService.initialize');
+        logError(appError, 'LMService.initialize');
         throw appError;
       }
     })();
@@ -100,7 +100,7 @@ class LMServiceImpl implements LMService {
   }
 
   /**
-   * Check if the LLM service is ready to process queries
+   * Check if the LL service is ready to process queries
    */
   isReady(): boolean {
     return this.ready;
@@ -108,7 +108,7 @@ class LMServiceImpl implements LMService {
 
   /**
    * Validate a user query and extract POI types
-   * Uses LLM to extract nouns, then matches against supported types from data
+   * Uses LM to extract nouns, then matches against supported types from data
    * Returns validation result with extracted types and flags
    */
   async analyzeQuery(query: string): Promise<ValidationResult> {
@@ -225,7 +225,7 @@ class LMServiceImpl implements LMService {
         };
       }
 
-      // Extract nouns and adjectives from the query using LLM
+      // Extract nouns and adjectives from the query using LM
       const { nouns, adjectives } = await this.extractNounsAndAdjectives(query);
       if (appConfig.debug.enableLogging) {
         console.log('🔍 [DEBUG] Nouns extracted from query:', nouns);
@@ -289,7 +289,7 @@ class LMServiceImpl implements LMService {
 
   /**
    * Extract POI types from a natural language query
-   * Uses LLM to extract nouns, then matches against supported types
+   * Uses LM to extract nouns, then matches against supported types
    */
   async extractPOITypes(query: string): Promise<string[]> {
     const { nouns } = await this.extractNounsAndAdjectives(query);
@@ -297,7 +297,7 @@ class LMServiceImpl implements LMService {
   }
 
   /**
-   * Extract nouns and adjectives from query using the LLM
+   * Extract nouns and adjectives from query using the LM
    * Returns both nouns (POI types) and adjectives (attributes like cuisine)
    */
   async extractNounsAndAdjectives(query: string): Promise<{ nouns: string[], adjectives: string[] }> {

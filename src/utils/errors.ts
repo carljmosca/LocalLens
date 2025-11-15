@@ -32,7 +32,7 @@ export class AppError extends Error {
  * Error codes for categorizing different types of errors
  */
 export enum ErrorCode {
-  // WebGPU and LLM errors
+  // WebGPU and LM errors
   WEBGPU_UNAVAILABLE = 'WEBGPU_UNAVAILABLE',
   MODEL_LOAD_FAILED = 'MODEL_LOAD_FAILED',
   MODEL_INFERENCE_FAILED = 'MODEL_INFERENCE_FAILED',
