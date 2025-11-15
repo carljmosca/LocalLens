@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { appConfig } from '../config/app.config';
 import { dataService } from '../services/dataService';
+import { InstallPrompt } from './InstallPrompt';
 
 /**
  * Header Component
  * Displays the application title and description
  * Dynamically shows available POI types from the data
+ * Includes PWA installation prompt
  */
 const Header: React.FC = () => {
   const [poiTypes, setPoiTypes] = useState<string[]>([]);
@@ -34,7 +36,12 @@ const Header: React.FC = () => {
 
   return (
     <header className="app-header" role="banner">
-      <h1>{appConfig.app.name}</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+        <div>
+          <h1>{appConfig.app.name}</h1>
+        </div>
+        <InstallPrompt />
+      </div>
       <p className="app-description">
         {appConfig.app.description} in {appConfig.location.displayName}.
         {poiTypes.length > 0 && (

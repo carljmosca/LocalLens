@@ -28,6 +28,15 @@ export default defineConfig({
           'transformers': ['@huggingface/transformers']
         }
       }
-    }
+    },
+    // Ensure service worker and manifest are copied
+    copyPublicDir: true
+  },
+  // PWA configuration
+  define: {
+    // Enable PWA features in production
+    __PWA_ENABLED__: JSON.stringify(process.env.NODE_ENV === 'production'),
+    // Pass build info to runtime
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString())
   }
 })

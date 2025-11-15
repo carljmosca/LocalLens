@@ -16,8 +16,8 @@
       "name": "Science Museum of Virginia",
       "type": "museum",
       "location": {
-        "latitude": 37.5584,
-        "longitude": -77.4641
+        "latitude": 37.561261200114146, 
+        "longitude": -77.46579291417382
       },
       "address": "2500 W Broad St, Richmond, VA 23220"
     },
@@ -26,8 +26,8 @@
       "name": "Virginia Museum of History & Culture",
       "type": "museum",
       "location": {
-        "latitude": 37.5562,
-        "longitude": -77.4732
+        "latitude": 37.558251297505606, 
+        "longitude": -77.47342706782997
       },
       "address": "428 N Arthur Ashe Blvd, Richmond, VA 23220"
     },
@@ -36,20 +36,30 @@
       "name": "Edgar Allan Poe Museum",
       "type": "museum",
       "location": {
-        "latitude": 37.5312,
-        "longitude": -77.4283
+        "latitude": 37.532281349853804, 
+        "longitude": -77.42602357338599
       },
       "address": "1914 E Main St, Richmond, VA 23223"
     },
     {
       "id": "museum_005",
-      "name": "American Civil War Museum",
+      "name": "American Civil War Museum - Historic Tredegar",
       "type": "museum",
       "location": {
-        "latitude": 37.5385,
-        "longitude": -77.4342
+        "latitude": 37.536288069404954, 
+        "longitude": -77.44557154561231
       },
       "address": "480 Tredegar St, Richmond, VA 23219"
+    },
+        {
+      "id": "museum_006",
+      "name": "White House of the Confederacy",
+      "type": "museum",
+      "location": {
+        "latitude": 37.54142649452002, 
+        "longitude": -77.42943537631102
+      },
+      "address": "1201 E Clay St, Richmond, VA 23219"
     },
     {
       "id": "hospital_001",
