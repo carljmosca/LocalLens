@@ -13,6 +13,7 @@ import QueryInterface from './QueryInterface';
 import ResultsDisplay from './ResultsDisplay';
 import LoadingIndicator from './LoadingIndicator';
 import Footer from './Footer';
+import { DebugPanel } from './DebugPanel';
 
 /**
  * App Content Component
@@ -114,6 +115,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="app-container">
+      <DebugPanel />
       <Header />
       <main className="main-content" role="main">
         <QueryInterface 
