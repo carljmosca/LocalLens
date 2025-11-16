@@ -29,8 +29,10 @@ export class PWAUtils {
   static async registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
     if ('serviceWorker' in navigator) {
       try {
-        const registration = await navigator.serviceWorker.register('/sw.js', {
-          scope: '/'
+        // Use correct path for GitHub Pages deployments
+        const swPath = `${import.meta.env.BASE_URL}sw.js`;
+        const registration = await navigator.serviceWorker.register(swPath, {
+          scope: import.meta.env.BASE_URL
         });
 
         console.log('Service Worker registered successfully:', registration);
