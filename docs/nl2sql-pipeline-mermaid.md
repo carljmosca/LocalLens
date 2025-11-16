@@ -2,14 +2,14 @@
 
 ```mermaid
 flowchart TD
-    A[User Input (Natural Language Query)] --> B[NLP Analysis (lmService)\nPrompt FLAN-T5-small, extract types/intent]
-    B --> C[Template Selection (lmService)\nChoose SQL template based on intent]
-    C --> D[SQL Generation (lmService)\nPopulate template with extracted types]
-    D --> E[SQL Validation (queryService)\nCheck for DML/DDL, injection, read-only]
-    E -->|Valid| F[SQL Execution (sqliteService)\nRun query on in-memory SQLite (sql.js)]
-    F --> G[Result Transformation (queryService)\nGroup/format SQL rows as POI objects]
-    G --> H[UI Rendering (ResultsDisplay)\nShow results, distances, map links]
-    E -- Invalid --> I[Error Handling\nShow user-friendly error]
+    A[User Input: Natural Language Query] --> B[NLP Analysis: lmService, FLAN-T5-small, extract types/intent]
+    B --> C[Template Selection: lmService, choose SQL template]
+    C --> D[SQL Generation: lmService, fill template]
+    D --> E[SQL Validation: queryService, check for DML/DDL, injection, read-only]
+    E -->|Valid| F[SQL Execution: sqliteService, run on in-memory SQLite]
+    F --> G[Result Transformation: queryService, group/format SQL rows]
+    G --> H[UI Rendering: ResultsDisplay, show results, distances, map links]
+    E -- Invalid --> I[Error Handling: show user-friendly error]
 ```
 
 ---
