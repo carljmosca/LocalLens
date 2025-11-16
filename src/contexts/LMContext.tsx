@@ -59,15 +59,11 @@ export const LMProvider: React.FC<LMProviderProps> = ({ children }) => {
           });
         }, 300);
         
-        // Load data source from localStorage if available
-        const savedDataSource = localStorage.getItem('locallens-data-source') || undefined;
-        logger.log('🔧 [DEBUG] Loading data source:', savedDataSource || 'default (pois.json)');
-        
         // Initialize LM service, data service, and SQLite DB in parallel
         await Promise.all([
           lmService.initialize(),
-          dataService.loadPOIs(savedDataSource),
-          sqliteService.init(savedDataSource)
+          dataService.loadPOIs(),
+          sqliteService.init()
         ]);
         
         logger.log('🔧 [DEBUG] Data loaded. Supported types:', dataService.getSupportedTypes());

@@ -12,25 +12,13 @@ class DataServiceImpl implements DataService {
   private supportedTypes: string[] = [];
   private isLoaded: boolean = false;
   private loadPromise: Promise<void> | null = null;
-  private currentDataSource: string = 'pois.json';
 
   /**
    * Load POI data from the JSON file
    * Cached after first load to improve performance
-   * @param dataSourceFile - Optional custom data source file (defaults to current or pois.json)
    * @throws {AppError} If data loading or parsing fails
    */
-  async loadPOIs(dataSourceFile?: string): Promise<void> {
-    // If no source specified, use current source (don't reset to default)
-    const requestedSource = dataSourceFile || this.currentDataSource || 'pois.json';
-    
-    // If requesting a different data source, invalidate cache
-    if (requestedSource !== this.currentDataSource) {
-      this.isLoaded = false;
-      this.loadPromise = null;
-      this.currentDataSource = requestedSource;
-    }
-
+  async loadPOIs(): Promise<void> {
     // Return cached data if already loaded
     if (this.isLoaded) {
       return Promise.resolve();
@@ -42,26 +30,21 @@ class DataServiceImpl implements DataService {
     }
 
     // Create new load promise
-    this.loadPromise = this._loadPOIsInternal(requestedSource);
+    this.loadPromise = this._loadPOIsInternal();
     return this.loadPromise;
   }
 
   /**
    * Internal method to load POI data
-   * @param dataSourceFile - The data source file to load
    * @private
    */
-  private async _loadPOIsInternal(dataSourceFile: string): Promise<void> {
+  private async _loadPOIsInternal(): Promise<void> {
     try {
       // Use relative path that works with base path in production
-      // Add cache-busting parameter to force fresh fetch
-      const cacheBuster = `?t=${Date.now()}`;
-      const url = `${import.meta.env.BASE_URL}${dataSourceFile}${cacheBuster}`;
+      const url = `${import.meta.env.BASE_URL}pois.json`;
       console.log('🌐 [DEBUG] Fetching POI data from:', url);
       
-      const response = await fetch(url, {
-        cache: 'no-store' // Tell browser not to use cache
-      });
+      const response = await fetch(url);
       
       console.log('🌐 [DEBUG] Response status:', response.status, 'Type:', response.type);
       
@@ -151,14 +134,6 @@ class DataServiceImpl implements DataService {
    */
   getSupportedTypes(): string[] {
     return [...this.supportedTypes];
-  }
-
-  /**
-   * Get the currently loaded data source
-   * @returns The current data source file name
-   */
-  getCurrentDataSource(): string {
-    return this.currentDataSource;
   }
 }
 
