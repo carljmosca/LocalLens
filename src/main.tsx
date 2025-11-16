@@ -12,9 +12,9 @@ import { logger } from './utils/logger'
 import { appConfig } from './config/app.config'
 import './index.css'
 
-// Initialize on-screen logging for mobile debugging (only in debug mode)
-if (appConfig.debug.enableLogging) {
-  logger.log('🔧 Debug mode enabled - initializing on-screen logging');
+// Initialize on-screen logging for mobile debugging only when explicitly enabled
+if (appConfig.debug.enableLogging && appConfig.debug.showOnScreenConsole) {
+  logger.log('🔧 Debug mode + on-screen console enabled - initializing on-screen logging');
   // Initialize after a short delay to ensure DOM is ready
   setTimeout(() => {
     logger.initOnScreenLogging();

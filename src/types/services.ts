@@ -8,7 +8,6 @@ export interface POIWithNearby extends POI {
 
 export interface DataService {
   loadPOIs(): Promise<void>;
-  queryPOIs(types: string[]): POI[];
   getSupportedTypes(): string[];
 }
 

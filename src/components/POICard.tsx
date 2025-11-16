@@ -14,16 +14,6 @@ interface POICardProps {
  * Memoized to prevent unnecessary re-renders
  */
 const POICard: React.FC<POICardProps> = React.memo(({ poi }) => {
-  const formatAddress = (addr: any) => {
-    if (!addr) return '';
-    const parts: string[] = [];
-    if (addr.street) parts.push(addr.street);
-    const cityStateZip = [addr.city, addr.state, addr.zip].filter(Boolean).join(', ');
-    if (cityStateZip) parts.push(cityStateZip);
-    return parts.join(' - ');
-  };
-
-  const addressString = formatAddress(poi.address);
   return (
     <article className="poi-card" role="article" aria-label={`${poi.name} - ${poi.type}`}>
       <div className="poi-header">
@@ -42,13 +32,13 @@ const POICard: React.FC<POICardProps> = React.memo(({ poi }) => {
           <p className="poi-address">
             <strong>Address:</strong>{' '}
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressString)}`}
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(poi.address)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="address-link"
-              aria-label={`Open ${addressString} in Google Maps`}
+              aria-label={`Open ${poi.address} in Google Maps`}
             >
-              {addressString}
+              {poi.address}
             </a>
           </p>
         )}

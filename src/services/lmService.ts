@@ -292,15 +292,6 @@ class LMServiceImpl implements LMService {
   }
 
   /**
-   * Extract POI types from a natural language query
-   * Uses LM to extract nouns, then matches against supported types
-   */
-  async extractPOITypes(query: string): Promise<string[]> {
-    const { nouns } = await this.extractNounsAndAdjectives(query);
-    return this.matchNounsToTypes(nouns, dataService.getSupportedTypes());
-  }
-
-  /**
    * Extract nouns and adjectives from query using the LM
    * Returns both nouns (POI types) and adjectives (attributes like cuisine)
    */
@@ -422,6 +413,7 @@ class LMServiceImpl implements LMService {
 
   /**
    * Generate a read-only SQL SELECT statement from a natural language request.
+   * Uses template-based generation with NLP analysis from the existing model.
    * - `schemaText` should contain a concise description of tables and columns (e.g. from schema.sql)
    * - Returns a validated SQL string (throws AppError on safety/validation failure)
    */
@@ -433,50 +425,80 @@ class LMServiceImpl implements LMService {
     }
 
     try {
-      logger.log('🧭 [DEBUG] Building SQL generation prompt');
+      logger.log('🧭 [DEBUG] Analyzing query for template-based SQL generation');
 
-      // Haversine snippet used in few-shot example for "nearby" semantics
-      const haversine = `(6371 * 2 * ASIN(SQRT(POWER(SIN(RADIANS(p.latitude - r.latitude) / 2), 2) + COS(RADIANS(r.latitude)) * COS(RADIANS(p.latitude)) * POWER(SIN(RADIANS(p.longitude - r.longitude) / 2), 2))))`;
+      // Use existing NLP analysis to understand the query
+      const analysis = await this.analyzeQuery(nlQuery);
+      logger.log('🔍 [DEBUG] Query analysis:', analysis);
 
-      const prompt = `Schema:
-${schemaText}
+      let sql = '';
 
-Instruction:
-Convert the following natural language request into a single, read-only SQL SELECT statement. Only output the SQL between <SQL> and </SQL> tags. Use parameter placeholders like $1 for values (do not substitute actual user text). Use the Haversine expression below when expressing "nearby"/"within" distance. Do not output any explanation, comments outside the <SQL> tags, or multiple statements.
-
-Haversine snippet (use as-is):
-${haversine}
-
-Example:
-NL: Find museums with nearby French restaurants
-<SQL>
-SELECT DISTINCT p.id, p.name, p.type, p.latitude, p.longitude
+      if (analysis.isProximityQuery && analysis.targetType && analysis.nearbyType) {
+        // Proximity query: "Find museums with nearby French restaurants"
+        // Returns both primary and nearby POIs with distance
+        sql = `SELECT 
+  p.id AS primary_id,
+  p.name AS primary_name,
+  p.type_id AS primary_type_id,
+  p.latitude AS primary_latitude,
+  p.longitude AS primary_longitude,
+  p.address AS primary_address,
+  nearby.id AS nearby_id,
+  nearby.name AS nearby_name,
+  nearby.type_id AS nearby_type_id,
+  nearby.latitude AS nearby_latitude,
+  nearby.longitude AS nearby_longitude,
+  nearby.address AS nearby_address,
+  (
+    6371 * 2 * ASIN(SQRT(
+      POWER(SIN(RADIANS(p.latitude - nearby.latitude) / 2), 2) +
+      COS(RADIANS(nearby.latitude)) * COS(RADIANS(p.latitude)) *
+      POWER(SIN(RADIANS(p.longitude - nearby.longitude) / 2), 2)
+    ))
+  ) * 0.621371 AS distance_miles
 FROM pois p
-JOIN restaurants r
-  ON ${haversine} <= $1
-WHERE p.type = 'museum' AND LOWER(r.cuisine) = 'french'
-LIMIT 100
-</SQL>
+CROSS JOIN pois nearby
+WHERE p.type_id IN (
+  SELECT pt.type_id FROM poi_types pt WHERE pt.type_name = '${analysis.targetType}'
+)
+AND nearby.type_id IN (
+  SELECT pt2.type_id FROM poi_types pt2 WHERE pt2.type_name = '${analysis.nearbyType}'
+)
+AND p.id != nearby.id
+AND (
+  6371 * 2 * ASIN(SQRT(
+    POWER(SIN(RADIANS(p.latitude - nearby.latitude) / 2), 2) +
+    COS(RADIANS(nearby.latitude)) * COS(RADIANS(p.latitude)) *
+    POWER(SIN(RADIANS(p.longitude - nearby.longitude) / 2), 2)
+  ))
+) * 0.621371 <= 2.0
+ORDER BY p.id, distance_miles
+LIMIT 500`;
+      } else if (analysis.types && analysis.types.length > 0) {
+        // Simple type query: "Find museums" or "Show restaurants"
+        const typeConditions = analysis.types.map(t => `pt.type_name = '${t}'`).join(' OR ');
+        sql = `SELECT p.id, p.name, p.type_id, p.latitude, p.longitude, p.address
+FROM pois p
+JOIN poi_types pt ON p.type_id = pt.type_id
+WHERE ${typeConditions}
+LIMIT 100`;
+      } else {
+        // Fallback: select all POIs
+        sql = `SELECT p.id, p.name, p.type_id, p.latitude, p.longitude, p.address
+FROM pois p
+LIMIT 100`;
+      }
 
-Now convert this request to SQL:
-NL: ${nlQuery}
-`;
-
-      const res = await this.model(prompt, {
-        max_new_tokens: 384,
-        temperature: 0.0,
-        do_sample: false
-      });
-
-      const out = res?.[0]?.generated_text || '';
-      logger.log('🧩 [DEBUG] Raw model output (truncated):', out.slice ? out.slice(0, 800) : out);
-
-      const sql = this.extractSQLFromModelOutput(out);
-      logger.log('✅ [DEBUG] Extracted SQL:', sql);
+      logger.log('✅ [DEBUG] Generated SQL:', sql);
 
       const validation = this.validateGeneratedSQL(sql, schemaText);
       if (!validation.ok) {
-        const appErr = new AppError(`Generated SQL failed validation: ${validation.reason}`, ErrorCode.MODEL_INFERENCE_FAILED, 'Generated SQL did not pass safety checks');
+        logger.log('❌ [DEBUG] Validation failed for SQL:', sql);
+        const appErr = new AppError(
+          `Generated SQL failed validation: ${validation.reason}`,
+          ErrorCode.MODEL_INFERENCE_FAILED,
+          'Generated SQL did not pass safety checks'
+        );
         logError(appErr, 'LMService.generateSQL');
         throw appErr;
       }
@@ -488,11 +510,7 @@ NL: ${nlQuery}
     }
   }
 
-  private extractSQLFromModelOutput(text: string): string {
-    const match = text.match(/<SQL>([\s\S]*?)<\/SQL>/i);
-    if (match && match[1]) return match[1].trim();
-    return text.trim();
-  }
+
 
   private validateGeneratedSQL(sql: string, schemaText: string): { ok: boolean; reason?: string } {
     if (!sql || sql.length === 0) return { ok: false, reason: 'Empty SQL' };
@@ -506,8 +524,13 @@ NL: ${nlQuery}
       return { ok: false, reason: 'Multiple SQL statements detected' };
     }
 
-    // Ensure it starts with SELECT
-    if (!/^\s*select\b/i.test(sql)) return { ok: false, reason: 'Only SELECT statements allowed' };
+    // Ensure it starts with SELECT or WITH (for CTEs)
+    if (!/^\s*(select|with)\b/i.test(sql)) return { ok: false, reason: 'Only SELECT or WITH statements allowed' };
+    
+    // If it starts with WITH, ensure a SELECT appears somewhere in the statement
+    if (/^\s*with\b/i.test(sql) && !/\bselect\b/i.test(sql)) {
+      return { ok: false, reason: 'WITH clause must contain a SELECT statement' };
+    }
 
     // Basic identifier check: ensure that token-like words either match schema tokens or common SQL keywords
     const schemaTokens = new Set<string>();
@@ -515,9 +538,30 @@ NL: ${nlQuery}
     const schemaMatches = schemaText.match(tokenRegex) || [];
     schemaMatches.forEach(t => schemaTokens.add(t.toLowerCase()));
 
-    const sqlTokens = sql.match(tokenRegex) || [];
+    // Extract table aliases (e.g., "FROM pois p" or "JOIN poi_types AS pt")
+    const aliases = new Set<string>();
+    const tableAliasPattern = /(?:from|join)\s+(\w+)\s+(?:as\s+)?(\w+)/gi;
+    let aliasMatch;
+    while ((aliasMatch = tableAliasPattern.exec(sql)) !== null) {
+      if (aliasMatch[2]) {
+        aliases.add(aliasMatch[2].toLowerCase());
+      }
+    }
+
+    // Extract column aliases (e.g., "p.id AS primary_id" or "COUNT(*) AS total")
+    const columnAliasPattern = /\sas\s+(\w+)/gi;
+    let colAliasMatch;
+    while ((colAliasMatch = columnAliasPattern.exec(sql)) !== null) {
+      if (colAliasMatch[1]) {
+        aliases.add(colAliasMatch[1].toLowerCase());
+      }
+    }
+
+    // Remove string literals before tokenizing (they're not identifiers)
+    const sqlWithoutStrings = sql.replace(/'[^']*'/g, '');
+    const sqlTokens = sqlWithoutStrings.match(tokenRegex) || [];
     const sqlKeywords = new Set([
-      'select','from','where','join','on','and','or','limit','order','by','group','having','as','distinct','inner','left','right','full','outer','in','not','null','is','between','like','using','case','when','then','end','count','sum','avg','min','max'
+      'select','from','where','join','on','and','or','limit','order','by','group','having','as','distinct','inner','left','right','full','outer','cross','in','not','null','is','between','like','using','case','when','then','end','count','sum','avg','min','max','exists'
     ]);
 
     for (const t of sqlTokens) {
@@ -525,6 +569,8 @@ NL: ${nlQuery}
       if (sqlKeywords.has(low)) continue;
       // numbers and parameter placeholders ($1) may appear
       if (/^\$\d+$/.test(low) || /^\d+$/.test(low)) continue;
+      // Allow table aliases
+      if (aliases.has(low)) continue;
       if (!schemaTokens.has(low)) {
         // allow common function names
         if (/^abs|round|sqrt|radians|asin|cos|sin|power|sqrt$/.test(low)) continue;

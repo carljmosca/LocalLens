@@ -146,48 +146,6 @@ class DataServiceImpl implements DataService {
   }
 
   /**
-   * Query POIs by type
-   * @param types - Array of POI types to filter by
-   * @returns Array of POIs matching the specified types
-   */
-  queryPOIs(types: string[]): POI[] {
-    try {
-      if (!this.isLoaded) {
-        console.warn('DataService: queryPOIs called before data is loaded');
-        return [];
-      }
-
-      if (!types || types.length === 0) {
-        return [];
-      }
-
-      console.log('🔍 [DEBUG] queryPOIs called with types:', types);
-      console.log('🔍 [DEBUG] Total POIs available:', this.pois.length);
-      console.log('🔍 [DEBUG] All POI types in data:', this.pois.map(p => p.type));
-
-      // Normalize types to lowercase for case-insensitive matching
-          
-    const normalizedTypes = types.map(type => type.toLowerCase().replace('_', ' '));
-    console.log('🔍 [DEBUG] Normalized types to match:', normalizedTypes);
-    
-    const filteredPOIs = this.pois.filter(poi => {
-      const poiTypeNormalized = poi.type.toLowerCase().replace('_', ' ');
-      const matches = normalizedTypes.includes(poiTypeNormalized);
-      console.log(`  Checking POI "${poi.name}" type "${poi.type}" (normalized: "${poiTypeNormalized}") - Match: ${matches}`);
-      return matches;
-    });
-      console.log('🔍 [DEBUG] Filtered POIs count:', filteredPOIs.length);
-      return filteredPOIs;
-    } catch (error) {
-      logError(
-        error instanceof Error ? error : new Error(String(error)),
-        'DataService.queryPOIs'
-      );
-      return [];
-    }
-  }
-
-  /**
    * Get the list of supported POI types
    * @returns Array of supported POI type strings
    */

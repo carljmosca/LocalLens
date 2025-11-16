@@ -1,10 +1,11 @@
 import { QueryService } from '../types/services';
 import type { QueryResult } from '../types/services';
+import type { POI } from '../types/poi';
 import { lmService } from './lmService';
 import { dataService } from './dataService';
+import { sqliteService } from './sqliteService';
 import { AppError, ErrorCode, logError } from '../utils/errors';
 import { appConfig } from '../config/app.config';
-import { findPOIsWithNearby, filterPOIsByAttributes } from '../utils/distance';
 import { logger } from '../utils/logger';
 
 /**
@@ -15,15 +16,131 @@ class QueryServiceImpl implements QueryService {
   private readonly TIMEOUT_MS = 3000;
 
   /**
+   * Convert proximity SQL results to grouped POIWithNearby structure
+   */
+  private async convertProximityResultsToGrouped(
+    results: { columns: string[]; values: any[][] }[],
+    _targetType: string,
+    _nearbyType: string,
+    _maxDistance: number
+  ) {
+    if (!results || results.length === 0 || !results[0].values || results[0].values.length === 0) {
+      return [];
+    }
+
+    const firstTable = results[0];
+    const cols = firstTable.columns;
+    
+    // Get type_id -> type_name mapping
+    const typeMap = new Map<number, string>();
+    const typeResults = sqliteService.runQuery('SELECT type_id, type_name FROM poi_types');
+    if (typeResults && typeResults[0]) {
+      const typeIdIdx = typeResults[0].columns.indexOf('type_id');
+      const typeNameIdx = typeResults[0].columns.indexOf('type_name');
+      for (const row of typeResults[0].values) {
+        typeMap.set(row[typeIdIdx], row[typeNameIdx]);
+      }
+    }
+
+    // Group by primary POI
+    const grouped = new Map<string, any>();
+    
+    for (const row of firstTable.values) {
+      const primaryId = row[cols.indexOf('primary_id')];
+      const nearbyId = row[cols.indexOf('nearby_id')];
+      const distance = row[cols.indexOf('distance_miles')];
+      
+      if (!grouped.has(primaryId)) {
+        const primaryTypeId = row[cols.indexOf('primary_type_id')];
+        grouped.set(primaryId, {
+          id: primaryId,
+          name: row[cols.indexOf('primary_name')],
+          type: typeMap.get(primaryTypeId) || 'unknown',
+          location: {
+            latitude: row[cols.indexOf('primary_latitude')],
+            longitude: row[cols.indexOf('primary_longitude')]
+          },
+          address: row[cols.indexOf('primary_address')] || '',
+          nearbyPOIs: []
+        });
+      }
+      
+      const nearbyTypeId = row[cols.indexOf('nearby_type_id')];
+      grouped.get(primaryId).nearbyPOIs.push({
+        id: nearbyId,
+        name: row[cols.indexOf('nearby_name')],
+        type: typeMap.get(nearbyTypeId) || 'unknown',
+        location: {
+          latitude: row[cols.indexOf('nearby_latitude')],
+          longitude: row[cols.indexOf('nearby_longitude')]
+        },
+        address: row[cols.indexOf('nearby_address')] || '',
+        distance: Math.round(distance * 100) / 100 // Round to 2 decimals
+      });
+    }
+    
+    return Array.from(grouped.values());
+  }
+
+  /**
+   * Convert SQL query results to POI objects
+   */
+  private async convertSQLResultsToPOIs(results: { columns: string[]; values: any[][] }[]): Promise<POI[]> {
+    if (!results || results.length === 0 || !results[0].values || results[0].values.length === 0) {
+      return [];
+    }
+
+    const firstTable = results[0];
+    const colIndexes = {
+      id: firstTable.columns.indexOf('id'),
+      name: firstTable.columns.indexOf('name'),
+      type_id: firstTable.columns.indexOf('type_id'),
+      latitude: firstTable.columns.indexOf('latitude'),
+      longitude: firstTable.columns.indexOf('longitude'),
+      address: firstTable.columns.indexOf('address')
+    };
+
+    // Get type_id -> type_name mapping
+    const typeMap = new Map<number, string>();
+    const typeResults = sqliteService.runQuery('SELECT type_id, type_name FROM poi_types');
+    if (typeResults && typeResults[0]) {
+      const typeIdIdx = typeResults[0].columns.indexOf('type_id');
+      const typeNameIdx = typeResults[0].columns.indexOf('type_name');
+      for (const row of typeResults[0].values) {
+        typeMap.set(row[typeIdIdx], row[typeNameIdx]);
+      }
+    }
+
+    const pois: POI[] = [];
+    for (const row of firstTable.values) {
+      const typeId = row[colIndexes.type_id];
+      const typeName = typeMap.get(typeId) || 'unknown';
+      
+      pois.push({
+        id: row[colIndexes.id],
+        name: row[colIndexes.name],
+        type: typeName,
+        location: {
+          latitude: row[colIndexes.latitude],
+          longitude: row[colIndexes.longitude]
+        },
+        address: colIndexes.address >= 0 ? row[colIndexes.address] : ''
+      });
+    }
+
+    return pois;
+  }
+
+  /**
    * Process a user query and return structured results
-   * Integrates LM validation with data retrieval
+   * Uses SQL generation and in-browser SQLite execution
    * 
    * @param query - The natural language query from the user
    * @returns QueryResult with POIs, suggestions, types list, or error
    */
   async processQuery(query: string): Promise<QueryResult> {
     try {
-      logger.log('=== [DEBUG] Query Processing Started ===');
+      logger.log('=== [DEBUG] Query Processing Started (SQL Mode) ===');
       logger.log('🔍 [DEBUG] User prompt:', query);
       
       // Validate input
@@ -43,12 +160,9 @@ class QueryServiceImpl implements QueryService {
         };
       }
 
-      // Validate query with timeout
-      logger.log('🤖 [DEBUG] Validating query with LM...');
+      // Check for type request first (before SQL generation)
       const validationResult = await this.validateQueryWithTimeout(query);
-      logger.log('🤖 [DEBUG] LM validation result:', JSON.stringify(validationResult, null, 2));
-
-      // Handle type request (user asking for supported types)
+      
       if (validationResult.isTypeRequest) {
         logger.log('📝 [DEBUG] Type request detected');
         return {
@@ -57,148 +171,73 @@ class QueryServiceImpl implements QueryService {
         };
       }
 
-      // Handle invalid query (no valid POI types found)
-      if (!validationResult.isValid || validationResult.types.length === 0) {
-        logger.log('⚠️ [DEBUG] No valid POI types found in query');
-        return {
-          type: 'suggestions',
-          message: 'I couldn\'t identify any valid POI types in your query.',
-          suggestions: this.getDefaultSuggestions()
-        };
-      }
-
-      // Ensure POI data is loaded before querying
-      logger.log('📊 [DEBUG] Ensuring POI data is loaded...');
-      await dataService.loadPOIs();
+      // Ensure SQLite DB is initialized
+      logger.log('🗂️ [DEBUG] Ensuring SQLite DB is initialized...');
+      await sqliteService.init();
       
-      // Handle proximity queries (e.g., "parks with nearby restaurants")
-      if (validationResult.isProximityQuery && validationResult.targetType && validationResult.nearbyType) {
-        logger.log('🎯 [DEBUG] Processing proximity query:', {
-          target: validationResult.targetType,
-          nearby: validationResult.nearbyType,
-          distance: `${appConfig.search.nearbyDistanceMiles} miles`,
-          targetAttributes: validationResult.attributes?.cuisine,
-          nearbyAttributes: validationResult.nearbyAttributes?.cuisine
-        });
+      // Get schema for SQL generation
+      const schemaResp = await fetch('/schema.sql');
+      const schemaText = await schemaResp.text();
+      
+      // Generate SQL from natural language
+      logger.log('💻 [DEBUG] Generating SQL from query...');
+      const sql = await lmService.generateSQL(query, schemaText);
+      logger.log('✅ [DEBUG] Generated SQL:', sql);
+      
+      // Execute SQL query
+      logger.log('⚡ [DEBUG] Executing SQL query...');
+      const sqlResults = sqliteService.runQuery(sql);
+      logger.log('📊 [DEBUG] SQL returned', sqlResults[0]?.values?.length || 0, 'rows');
+      
+      // Check if this is a proximity query (has primary_id and nearby_id columns)
+      const isProximityResult = sqlResults[0]?.columns?.includes('primary_id') && 
+                                sqlResults[0]?.columns?.includes('nearby_id');
+      
+      if (isProximityResult) {
+        // Convert to grouped results with nearby POIs
+        logger.log('📍 [DEBUG] Processing proximity query results...');
+        const poisWithNearby = await this.convertProximityResultsToGrouped(
+          sqlResults,
+          validationResult.targetType || '',
+          validationResult.nearbyType || '',
+          2.0 // maxDistance in miles
+        );
         
-        let targetPOIs = dataService.queryPOIs([validationResult.targetType]);
-        let nearbyPOIs = dataService.queryPOIs([validationResult.nearbyType]);
-        
-        logger.log(`🔧 [DEBUG] Found ${targetPOIs.length} ${validationResult.targetType}s and ${nearbyPOIs.length} ${validationResult.nearbyType}s before attribute filtering`);
-        
-        // Filter target POIs by attributes if specified
-        if (validationResult.attributes?.cuisine && validationResult.attributes.cuisine.length > 0) {
-          logger.log('🔧 [DEBUG] Filtering target POIs by attributes:', validationResult.attributes.cuisine);
-          targetPOIs = filterPOIsByAttributes(targetPOIs, validationResult.attributes.cuisine);
-          logger.log(`🔧 [DEBUG] Found ${targetPOIs.length} target POIs after filtering`);
-        }
-        
-        // Filter nearby POIs by attributes if specified
-        if (validationResult.nearbyAttributes?.cuisine && validationResult.nearbyAttributes.cuisine.length > 0) {
-          logger.log('🔧 [DEBUG] Filtering nearby POIs by attributes:', validationResult.nearbyAttributes.cuisine);
-          nearbyPOIs = filterPOIsByAttributes(nearbyPOIs, validationResult.nearbyAttributes.cuisine);
-          logger.log(`🔧 [DEBUG] Found ${nearbyPOIs.length} nearby POIs after filtering`);
-        }
-        
-        const poisWithNearby = findPOIsWithNearby(targetPOIs, nearbyPOIs);
-        logger.log(`📍 [DEBUG] Found ${poisWithNearby.length} ${validationResult.targetType}s with nearby ${validationResult.nearbyType}s`);
-        logger.log('📍 [DEBUG] Results summary:', poisWithNearby.map(poi => ({
-          name: poi.name,
-          nearbyCount: poi.nearbyPOIs.length,
-          nearbyNames: poi.nearbyPOIs.map(n => n.name)
-        })));
+        logger.log('✅ [DEBUG] Converted to', poisWithNearby.length, 'grouped POIs');
         
         if (poisWithNearby.length === 0) {
-          const targetDisplay = validationResult.targetType.replace('_', ' ');
-          const nearbyDisplay = validationResult.nearbyType.replace('_', ' ');
-          const nearbyAttrText = validationResult.nearbyAttributes?.cuisine?.length 
-            ? ` ${validationResult.nearbyAttributes.cuisine.join(', ')}` 
-            : '';
-          const targetAttrText = validationResult.attributes?.cuisine?.length 
-            ? ` ${validationResult.attributes.cuisine.join(', ')}` 
-            : '';
-          
           return {
             type: 'suggestions',
-            message: `No${targetAttrText} ${targetDisplay}s found with${nearbyAttrText} ${nearbyDisplay}s within ${appConfig.search.nearbyDistanceMiles} mile${appConfig.search.nearbyDistanceMiles === 1 ? '' : 's'} in ${appConfig.location.displayName}.`,
-            suggestions: [
-              `Try: "Find ${targetDisplay}s in ${appConfig.location.city}"`,
-              `Try: "Show me ${nearbyDisplay}s"`,
-              'Try increasing the search distance or searching for different POI types or attributes'
-            ]
+            message: `No results found for your query in ${appConfig.location.displayName}.`,
+            suggestions: this.getDefaultSuggestions()
           };
         }
         
-        logger.log('✅ [DEBUG] Proximity Query Processing Complete');
         return {
           type: 'grouped',
           poisWithNearby,
-          targetType: validationResult.targetType,
-          nearbyType: validationResult.nearbyType,
-          maxDistance: appConfig.search.nearbyDistanceMiles
+          targetType: validationResult.targetType || '',
+          nearbyType: validationResult.nearbyType || '',
+          maxDistance: 2.0
         };
       }
       
-      // Regular query processing
-      logger.log('🔍 [DEBUG] Processing regular query with types:', validationResult.types);
-      let pois = dataService.queryPOIs(validationResult.types);
-      logger.log(`🔍 [DEBUG] Found ${pois.length} POIs before filtering`);
+      // Convert SQL results to POI objects
+      const pois = await this.convertSQLResultsToPOIs(sqlResults);
+      logger.log('✅ [DEBUG] Converted to', pois.length, 'POI objects');
       
-      // Filter by attributes if specified (e.g., cuisine, style, etc.)
-      // Only filter if we have attributes AND at least one POI has attributes
-      if (validationResult.attributes?.cuisine && validationResult.attributes.cuisine.length > 0) {
-        const requestedAttributes = validationResult.attributes.cuisine;
-        
-        // Check if any POIs actually have attributes
-        const poisWithAttributes = pois.filter(poi => poi.attributes && poi.attributes.length > 0);
-        
-        // Only apply attribute filtering if some POIs have attributes
-        if (poisWithAttributes.length > 0) {
-          logger.log('🔧 [DEBUG] Filtering by attributes:', requestedAttributes);
-          
-          pois = pois.filter(poi => {
-            if (!poi.attributes || poi.attributes.length === 0) {
-              logger.log(`🔧 [DEBUG] POI "${poi.name}" has no attributes, excluding`);
-              return false;
-            }
-            
-            // Check if any requested attribute matches any POI attribute
-            const matches = requestedAttributes.some((reqAttr: string) => 
-              poi.attributes!.some(poiAttr => {
-                const reqLower = reqAttr.toLowerCase();
-                const poiLower = poiAttr.toLowerCase();
-                const match = poiLower.includes(reqLower) || reqLower.includes(poiLower);
-                if (match) {
-                  logger.log(`🔧 [DEBUG] Match found: "${reqAttr}" matches "${poiAttr}" in "${poi.name}"`);
-                }
-                return match;
-              })
-            );
-            
-            if (!matches) {
-              logger.log(`🔧 [DEBUG] POI "${poi.name}" attributes ${JSON.stringify(poi.attributes)} don't match ${JSON.stringify(requestedAttributes)}`);
-            }
-            
-            return matches;
-          });
-          logger.log('🔧 [DEBUG] POIs found after attribute filter:', pois.length);
-        } else {
-          logger.log('🔧 [DEBUG] No POIs have attributes, skipping attribute filter');
-        }
-      }
-
-      // Handle no results found
+      // Handle no results
       if (pois.length === 0) {
         return {
           type: 'suggestions',
-          message: `No ${validationResult.types.join(' or ')} found in ${appConfig.location.displayName}.`,
+          message: `No results found for your query in ${appConfig.location.displayName}.`,
           suggestions: this.getDefaultSuggestions()
         };
       }
 
-      // Return successful results
-      logger.log('✅ [DEBUG] Regular Query Processing Complete');
+      logger.log('✅ [DEBUG] SQL Query Processing Complete');
       logger.log('✅ [DEBUG] Final results:', pois.map(poi => poi.name));
+      
       return {
         type: 'success',
         pois

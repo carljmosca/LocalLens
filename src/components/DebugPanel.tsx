@@ -12,7 +12,8 @@ import SQLGeneratorDebug from './SQLGeneratorDebug';
  * Shows device info, errors, and provides quick debugging tools
  */
 export const DebugPanel: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false);
+  // Visible by default during debugging to make the panel easier to access
+  const [isVisible, setIsVisible] = useState(true);
   const [deviceInfo, setDeviceInfo] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -121,11 +122,13 @@ export const DebugPanel: React.FC = () => {
         </div>
       </details>
 
-      <details style={{ marginTop: 10 }}>
-        <summary style={{ cursor: 'pointer', marginBottom: '5px' }}>🧾 SQL Generator</summary>
+      <details open style={{ marginTop: 10, border: '1px solid rgba(255,255,255,0.06)', padding: 8, borderRadius: 6 }}>
+        <summary style={{ cursor: 'pointer', marginBottom: '5px', fontWeight: 700, fontSize: 13 }}>
+          🧾 SQL Generator — Generate & Execute Read-Only SQL
+        </summary>
         <div style={{ paddingLeft: '10px' }}>
-          <div style={{ fontSize: 11, color: '#aaa', marginBottom: 6 }}>
-            Quick tool: generate SQL from a natural language request using the in-browser LM.
+          <div style={{ fontSize: 12, color: '#ddd', marginBottom: 8 }}>
+            Convert natural language to read-only SQL and run against an in-browser, read-only SQLite instance populated from the selected POI dataset.
           </div>
           <SQLGeneratorDebug />
         </div>

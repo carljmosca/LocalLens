@@ -67,13 +67,15 @@ export const DataSourceSelector: React.FC = () => {
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      gap: '8px',
-      padding: '8px 12px',
-      background: '#f3f4f6',
-      borderRadius: '8px',
-      fontSize: '14px'
+      gap: '10px',
+      padding: '12px 16px',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      borderRadius: '10px',
+      fontSize: '15px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+      margin: '10px 0'
     }}>
-      <label htmlFor="data-source-selector" style={{ fontWeight: '500', color: '#374151' }}>
+      <label htmlFor="data-source-selector" style={{ fontWeight: '600', color: 'white', fontSize: '15px' }}>
         📍 Data Source:
       </label>
       <select
@@ -81,12 +83,15 @@ export const DataSourceSelector: React.FC = () => {
         value={currentSource}
         onChange={handleSourceChange}
         style={{
-          padding: '4px 8px',
-          borderRadius: '4px',
-          border: '1px solid #d1d5db',
+          padding: '6px 12px',
+          borderRadius: '6px',
+          border: '2px solid white',
           background: 'white',
           cursor: 'pointer',
-          fontSize: '14px'
+          fontSize: '15px',
+          fontWeight: '600',
+          color: '#667eea',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
         }}
       >
         {appConfig.data.availableDataSources.map((source) => (

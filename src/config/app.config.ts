@@ -39,6 +39,8 @@ export const appConfig = {
   // Debug configuration
   debug: {
     // Enable console logging for query processing
-    enableLogging: true  // Enabled to debug query issue
+    enableLogging: false, // Enabled to debug query issue
+    // Whether to show the on-screen mobile debug console (bottom bar). Set false to keep a single Debug Panel.
+    showOnScreenConsole: false
   }
 };

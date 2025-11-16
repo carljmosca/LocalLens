@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { lmService } from '../services/lmService';
 import { dataService } from '../services/dataService';
+import { sqliteService } from '../services/sqliteService';
 import { PWAUtils } from '../utils/pwa';
 import { AppError, logError } from '../utils/errors';
 import { logger } from '../utils/logger';
@@ -62,13 +63,15 @@ export const LMProvider: React.FC<LMProviderProps> = ({ children }) => {
         const savedDataSource = localStorage.getItem('locallens-data-source') || undefined;
         logger.log('🔧 [DEBUG] Loading data source:', savedDataSource || 'default (pois.json)');
         
-        // Initialize LM service in parallel with data loading
+        // Initialize LM service, data service, and SQLite DB in parallel
         await Promise.all([
           lmService.initialize(),
-          dataService.loadPOIs(savedDataSource)
+          dataService.loadPOIs(savedDataSource),
+          sqliteService.init(savedDataSource)
         ]);
         
         logger.log('🔧 [DEBUG] Data loaded. Supported types:', dataService.getSupportedTypes());
+        logger.log('🗂️ [DEBUG] SQLite DB initialized and ready for queries');
         
         // Cache AI model for offline use if available
         logger.log('Attempting to cache AI model for offline use...');
