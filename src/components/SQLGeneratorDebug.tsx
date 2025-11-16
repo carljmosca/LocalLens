@@ -14,9 +14,11 @@ export const SQLGeneratorDebug: React.FC = () => {
     setError(null);
     setSql(null);
     try {
-      // Fetch schema file from server root
-      const res = await fetch('/schema.sql');
-      const schemaText = await res.text();
+      // Use hardcoded schema for debugging
+      const schemaText = `CREATE TABLE poi_types (type_id INTEGER PRIMARY KEY AUTOINCREMENT, type_name TEXT NOT NULL UNIQUE);
+CREATE TABLE pois (id TEXT PRIMARY KEY, name TEXT NOT NULL, type_id INTEGER, address TEXT, latitude REAL, longitude REAL, FOREIGN KEY (type_id) REFERENCES poi_types(type_id));
+CREATE TABLE attributes (attribute_id INTEGER PRIMARY KEY AUTOINCREMENT, attribute_name TEXT NOT NULL UNIQUE);
+CREATE TABLE poi_attributes (poi_id TEXT, attribute_id INTEGER, PRIMARY KEY (poi_id, attribute_id), FOREIGN KEY (poi_id) REFERENCES pois(id), FOREIGN KEY (attribute_id) REFERENCES attributes(attribute_id));`;
 
       // Ensure LM is initialized
       try {
